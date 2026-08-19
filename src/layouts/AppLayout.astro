@@ -1,0 +1,38 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = "AVA Stamford Affordability Demo",
+  description = "A Stamford renter affordability workflow for real estate agents."
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <header class="app-header">
+      <a class="brand" href="/" aria-label="AVA home">
+        <span class="brand-mark">AVA</span>
+        <span>
+          <strong>Agent Value Add</strong>
+          <small>Stamford renter fit</small>
+        </span>
+      </a>
+      <button class="ghost-button" type="button" data-open-preview>Upgrade</button>
+    </header>
+    <main>
+      <slot />
+    </main>
+  </body>
+</html>

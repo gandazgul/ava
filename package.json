@@ -1,0 +1,17 @@
+{
+  "name": "ava-stamford-demo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --host 0.0.0.0",
+    "build": "astro build",
+    "check": "astro check",
+    "test": "deno test --allow-read"
+  },
+  "dependencies": {
+    "@astrojs/check": "latest",
+    "astro": "latest",
+    "typescript": "^6.0.3"
+  }
+}
