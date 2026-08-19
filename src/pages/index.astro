@@ -64,6 +64,12 @@ import {
         <label>Tolls and parking
           <input name="tolls" type="number" min="0" step="1" required />
         </label>
+        <label>Heat
+          <input name="heat" type="number" min="0" step="1" required />
+        </label>
+        <label>Utilities
+          <input name="utilities" type="number" min="0" step="1" required />
+        </label>
       </div>
 
       <div class="button-row">
@@ -184,7 +190,9 @@ import {
         commuteDaysPerWeek: Number(data.get("commuteDaysPerWeek")),
         groceries: Number(data.get("groceries")),
         restaurants: Number(data.get("restaurants")),
-        tolls: Number(data.get("tolls"))
+        tolls: Number(data.get("tolls")),
+        heat: Number(data.get("heat")),
+        utilities: Number(data.get("utilities"))
       };
     }
 
