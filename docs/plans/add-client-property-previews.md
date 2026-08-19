@@ -20,50 +20,34 @@ objectiveChecks:
   - id: "OC2"
     command: "set -e; p=4331; deno task dev --host 127.0.0.1 --port $p >/tmp/ava-oc.log 2>&1 & q=$!; trap 'kill $q' EXIT; for i in $(seq 30); do curl -fsS localhost:$p >/dev/null && break; sleep 1; done; s=rw-oc; agent-browser --session $s open http://localhost:$p >/dev/null; agent-browser --session $s find text Clients click >/dev/null; agent-browser --session $s snapshot -i -c | grep -q 'Saved clients'; agent-browser --session $s find text Properties click >/dev/null; agent-browser --session $s snapshot -i -c | grep -q 'Demo property'; agent-browser --session $s find text 'Demo property' click >/dev/null; agent-browser --session $s find role button click --name 'Use in calculator' >/dev/null; agent-browser --session $s snapshot -i -c | grep -q 'Client basket'"
     rationale: "The baseline has no Clients or Properties views, no property detail action, and no record-to-calculator flow. This check fails until the user-visible navigation and retrieval workflow work in a browser, not only in source text."
-objectiveChecksBaseline:
-  recordedAt: "2026-08-19T22:46:11.916Z"
-  head: "7a8f9ea6b68217a76532b54db8e5c1bd3310db01"
-  results:
-    - id: "OC1"
-      command: "set -e; deno task build >/dev/null; deno eval 'const h=await Deno.readTextFile(\"dist/index.html\"); for (const s of [\"Calculator\",\"Clients\",\"Properties\",\"Single Agent\",\"Agency\",\"Use in calculator\"]) if (!h.includes(s)) throw new Error(`missing ${s}`); for (const s of [\"Free\",\"Agent Pro\",\"Enterprise\"]) if (h.includes(s)) throw new Error(`obsolete tier ${s}`); if ((h.match(/data-view=/g)||[]).length < 3) throw new Error(\"missing workspace views\")'"
-      rationale: "The baseline build still contains the obsolete Free/Agent Pro/Enterprise preview and has no Clients/Properties workspace labels or load action. This requires the revised two-plan copy and real workspace view markup to be present in the built app."
-      status: "unmet"
-      stdout: ""
-      stderr: "\u001b[0m\u001b[1m\u001b[31merror\u001b[0m: deno task couldn't find deno.json(c) or package.json. See https://docs.deno.com/go/config\n"
-      exitCode: 1
-      durationMs: 26
-      output: "\n\u001b[0m\u001b[1m\u001b[31merror\u001b[0m: deno task couldn't find deno.json(c) or package.json. See https://docs.deno.com/go/config\n"
-    - id: "OC2"
-      command: "set -e; p=4331; deno task dev --host 127.0.0.1 --port $p >/tmp/ava-oc.log 2>&1 & q=$!; trap 'kill $q' EXIT; for i in $(seq 30); do curl -fsS localhost:$p >/dev/null && break; sleep 1; done; s=rw-oc; agent-browser --session $s open http://localhost:$p >/dev/null; agent-browser --session $s find text Clients click >/dev/null; agent-browser --session $s snapshot -i -c | grep -q 'Saved clients'; agent-browser --session $s find text Properties click >/dev/null; agent-browser --session $s snapshot -i -c | grep -q 'Demo property'; agent-browser --session $s find text 'Demo property' click >/dev/null; agent-browser --session $s find role button click --name 'Use in calculator' >/dev/null; agent-browser --session $s snapshot -i -c | grep -q 'Client basket'"
-      rationale: "The baseline has no Clients or Properties views, no property detail action, and no record-to-calculator flow. This check fails until the user-visible navigation and retrieval workflow work in a browser, not only in source text."
-      status: "unmet"
-      stdout: ""
-      stderr: "curl: (7) Failed to connect to localhost port 4331 after 0 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 0 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 0 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\n✗ Navigation failed: net::ERR_CONNECTION_REFUSED\n/bin/sh: line 0: kill: (26942) - No such process\n"
-      exitCode: 1
-      durationMs: 31390
-      output: "\ncurl: (7) Failed to connect to localhost port 4331 after 0 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 0 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 0 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\ncurl: (7) Failed to connect to localhost port 4331 after 1 ms: Couldn't connect to server\n✗ Navigation failed: net::ERR_CONNECTION_REFUSED\n/bin/sh: line 0: kill: (26942) - No such process\n"
 executionAgent: "frontend-engineer"
 collaborationRecommendation: "pair"
 devServerCommand: "deno task dev --host 0.0.0.0"
 devServerUrl: "http://localhost:4321"
 devServerHmr: true
 createdAt: "2026-08-19T18:42:00-04:00"
-updatedAt: "2026-08-19T23:06:03.815Z"
-status: "validated_reviewer"
+updatedAt: "2026-08-19T23:06:15.301Z"
+status: "validated"
 origin: "internal"
 implementedAt: "2026-08-19T23:02:13.744Z"
+validatedAt: "2026-08-19T23:06:04.102Z"
 userVerifiedAt: null
 executionReport: "- Implemented offline Clients and Properties preview workspaces, local fictional property SVGs, detail dialogs, and Use in calculator flows while preserving the existing affordability calculation path.\n- Revised Upgrade to exactly Single Agent and Agency; removed Free, Agent Pro, and Enterprise from the built UI.\n- Merged `main` into the worktree without committing; used a temporary targeted stash to protect local work, restored the preview changes, and dropped the stash after verification.\n- Updated `docs/demo-handoff.md` with the new click path, preview boundaries, and fictional/no-live-listing disclaimer.\n- Verification passed: `deno task test` (11 passed), `deno task check` (0 errors), `deno task build`, OC1, and OC2.\n- Headed browser verified at `http://localhost:4331/`: desktop 1440×1000 home, Clients detail load, Properties detail load, Upgrade tiers, and mobile 390×844 Clients/Properties layout.\n- Visible evidence saved: `artifacts/final-property-loaded-desktop.png`, `artifacts/final-properties-mobile.png`, plus earlier `artifacts/clients-preview.png`, `artifacts/properties-preview.png`, `artifacts/property-loaded-calculator.png`.\n- Browser diagnostics: no page errors, no console output, and network requests were only local property SVGs with 200 responses."
+workRecord:
+  status: "generated"
+  recordId: "8acc5c02-b95a-48ab-a3a0-37cb31bfbb3c"
+  path: "docs/work-records/2026-08-19-added-offline-ava-client-and-property-previews.md"
+  lastAttemptAt: "2026-08-19T23:06:04.179Z"
 humanReviewMode: "ask"
 humanReviewDecision: "skipped"
 validationCheckpoint: null
 executionMode: "worktree"
-executionBaselineTree: "5b518ae076e59752c78f916d81f7a422a4d03452"
-worktreeId: "3a7c3386"
-worktreePath: "/Users/gandazgul/.wld/worktrees/--Users-gandazgul-Documents-web-ava--/ava-add-client-property-previews-3a7c3386"
-worktreeBranch: "worktree/add-client-property-previews-3a7c3386"
-worktreeBaseBranch: "main"
-worktreeStatus: "completed"
+deliveryEvidence:
+  version: 1
+  mode: "worktree_merge"
+  executionCommit: "75b5e34785e34edd50c138d2d0496bb5860f7e1d"
+  targetBranch: "main"
+  targetHeadBeforeMerge: "0202ba8299652aeed386e3eb500e70cc7c544dab"
 validationCiAttempts: 0
 validationObjectiveCheckAttempts: 0
 validationSemanticRounds: 1
