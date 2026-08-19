@@ -1,4 +1,5 @@
 ---
+planId: "08670b51-c6c4-4f00-959a-e0050f2db694"
 classification: "PLANNED_CHANGE"
 workKind: "FEATURE"
 complexity: "MEDIUM"
@@ -29,13 +30,33 @@ devServerCommand: "deno task dev --host 0.0.0.0"
 devServerUrl: "http://localhost:4321"
 devServerHmr: true
 createdAt: "2026-08-19T15:16:01-04:00"
-updatedAt: "2026-08-19T19:18:58.598Z"
-status: "ready_for_work"
+updatedAt: "2026-08-19T21:57:58.258Z"
+status: "user_verified"
 origin: "internal"
-userVerifiedAt: null
+implementedAt: "2026-08-19T19:40:40.346Z"
+validatedAt: "2026-08-19T21:57:50.326Z"
+userVerifiedAt: "2026-08-19T18:04:37-04:00"
+executionReport: "- Built the static Astro + Deno AVA Stamford prototype with local data, editable scenario form, pure affordability module, ranked alternatives, side-by-side comparison, deterministic AVA Insight, source disclosure, and Preview-only Upgrade panel.\n- Added `src/data/stamford.ts`, `src/lib/affordability.ts`, `src/pages/index.astro`, responsive CSS, app layout, Deno/Astro config, lockfile, `.gitignore`, and `docs/demo-handoff.md` with the tested click path and exact golden values.\n- Tests: added 10 affordability tests; removed/replaced 0 tests. `deno task test` passed: 10 passed, 0 failed.\n- CI/build: `deno task check` passed with 0 errors; `deno task build` passed and produced static `dist/` with no server adapter.\n- Headed browser URL: `http://localhost:4321/` in session `runwield-ava-stamford-194f0420`; dev server command `deno task dev --host 0.0.0.0`.\n- Mobile headed check at 390×844: loaded demo, confirmed `38/100`, `+$2,733`, basket `$4,467`, top alternative `06906`, no horizontal overflow, adverse `0/100` negative-remainder case, reset, Upgrade open/close, and visible focus via Tab; screenshots saved in ignored `artifacts/mobile-golden.png` and `artifacts/mobile-preview.png`.\n- Desktop headed check at 1440×1000: confirmed golden result persists, no horizontal overflow, final URL/title, no console errors beyond Vite debug logs, and no failed XHR/fetch requests; screenshot saved in ignored `artifacts/desktop-golden.png`.\n- External team handoff confirmation was not performed because no project manager/presenter was available in this execution; `docs/demo-handoff.md` is ready for that manual pass."
+workRecord:
+  status: "generated"
+  recordId: "20e317a6-40e7-4ca7-aff2-79d8a0f26238"
+  path: "docs/work-records/2026-08-19-built-verified-ava-stamford-affordability-demo.md"
+  lastAttemptAt: "2026-08-19T21:57:50.371Z"
+humanReviewMode: "ask"
+humanReviewDecision: "skipped"
+validationCheckpoint: null
+executionMode: "worktree"
+deliveryEvidence:
+  version: 1
+  mode: "worktree_merge"
+  executionCommit: "4258d152272cc8819061920cde10a777c6183ed3"
+  targetBranch: "main"
+  targetHeadBeforeMerge: "7a8f9ea6b68217a76532b54db8e5c1bd3310db01"
 routingIntent: "PLANNED_CHANGE"
 sessionName: "AVA affordability MVP"
-planId: "08670b51-c6c4-4f00-959a-e0050f2db694"
+validationCiAttempts: 0
+validationObjectiveCheckAttempts: 0
+validationSemanticRounds: 1
 ---
 
 # Build the AVA Stamford Hackathon Demo

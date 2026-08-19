@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 460" role="img" aria-labelledby="title desc">
+  <title id="title">Springdale duplex home demo property</title>
+  <desc id="desc">Illustrated duplex home with two entries and green yards.</desc>
+  <rect width="720" height="460" fill="#f6f3ee"/>
+  <circle cx="92" cy="98" r="58" fill="#dff5ef"/><circle cx="620" cy="118" r="70" fill="#dff5ef"/>
+  <rect x="128" y="184" width="464" height="198" rx="16" fill="#fffdf9" stroke="#ded7cc" stroke-width="8"/>
+  <path d="M110 194 260 96l120 98 92-72 140 72" fill="none" stroke="#0b5f59" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="174" y="242" width="72" height="112" rx="9" fill="#17211f"/><rect x="474" y="242" width="72" height="112" rx="9" fill="#17211f"/>
+  <rect x="292" y="244" width="92" height="70" rx="8" fill="#b9e7dd"/>
+  <path d="M0 382h720v78H0z" fill="#0f766e" opacity=".2"/>
+  <path d="M70 384c58-42 98-42 156 0M490 384c58-42 98-42 156 0" fill="none" stroke="#0f766e" stroke-width="16" stroke-linecap="round"/>
+</svg>

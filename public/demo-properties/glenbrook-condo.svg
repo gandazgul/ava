@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 460" role="img" aria-labelledby="title desc">
+  <title id="title">Glenbrook station condo demo property</title>
+  <desc id="desc">Illustrated condo building with station tracks.</desc>
+  <rect width="720" height="460" fill="#e4f7f1"/>
+  <rect x="110" y="88" width="410" height="286" rx="22" fill="#fffdf9" stroke="#ded7cc" stroke-width="8"/>
+  <rect x="160" y="136" width="74" height="58" rx="8" fill="#b9e7dd"/><rect x="278" y="136" width="74" height="58" rx="8" fill="#b9e7dd"/><rect x="396" y="136" width="74" height="58" rx="8" fill="#b9e7dd"/>
+  <rect x="160" y="226" width="74" height="58" rx="8" fill="#b9e7dd"/><rect x="278" y="226" width="74" height="58" rx="8" fill="#b9e7dd"/><rect x="396" y="226" width="74" height="112" rx="8" fill="#17211f"/>
+  <path d="M0 396h720" stroke="#0f766e" stroke-width="18"/><path d="M0 430h720" stroke="#17211f" stroke-width="6" opacity=".55"/>
+  <path d="M560 174h70l38 44v76H560z" fill="#0f766e" opacity=".82"/><circle cx="584" cy="306" r="18" fill="#17211f"/><circle cx="642" cy="306" r="18" fill="#17211f"/>
+</svg>

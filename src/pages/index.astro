@@ -1,0 +1,415 @@
+---
+import AppLayout from "../layouts/AppLayout.astro";
+import { demoClients, demoProperties } from "../data/demo-workspace.ts";
+import {
+  commuteProvenance,
+  foodProvenance,
+  fuelAssumption,
+  restaurantProvenance,
+  stamfordProfiles,
+  supportedZips,
+  tollProvenance
+} from "../data/stamford.ts";
+---
+
+<AppLayout>
+  <div data-view="calculator">
+    <section class="hero card">
+      <p class="eyebrow">Stamford affordability workflow</p>
+      <h1>Show the full monthly fit, not only the rent.</h1>
+      <p>
+        AVA keeps the calculator front and center, then lets an agent preview how saved clients and properties can be pulled into the same affordability workflow.
+      </p>
+      <div class="hero-actions">
+        <button class="primary-button" type="button" data-load-demo>Load demo client</button>
+        <button class="secondary-button" type="button" data-nav-view="clients">Clients</button>
+        <button class="secondary-button" type="button" data-nav-view="properties">Browse property previews</button>
+      </div>
+    </section>
+
+    <section class="workflow-grid">
+      <form id="scenario-form" class="card form-card" aria-describedby="form-help">
+        <div class="section-heading">
+          <p class="eyebrow">Step 1</p>
+          <h2>Client basket</h2>
+          <p id="form-help">Use monthly take-home income. Preview records load into this browser page only.</p>
+        </div>
+
+        <div class="form-grid">
+          <label>Monthly take-home income
+            <input name="monthlyTakeHomeIncome" type="number" min="1" step="1" required />
+          </label>
+          <label>Household size
+            <input name="householdSize" type="number" min="1" step="1" required />
+          </label>
+          <label>Target ZIP
+            <select name="targetZip" required>
+              {supportedZips.map((zip) => <option value={zip}>{zip} · {stamfordProfiles[zip].areaName}</option>)}
+            </select>
+          </label>
+          <label>Expected rent
+            <input name="targetRent" type="number" min="0" step="1" required />
+          </label>
+          <label>Work ZIP
+            <select name="workZip" required>
+              {supportedZips.map((zip) => <option value={zip}>{zip} · {stamfordProfiles[zip].areaName}</option>)}
+            </select>
+          </label>
+          <label>Commute days per week
+            <input name="commuteDaysPerWeek" type="number" min="0" max="7" step="1" required />
+          </label>
+          <label>Groceries
+            <input name="groceries" type="number" min="0" step="1" required />
+          </label>
+          <label>Restaurants
+            <input name="restaurants" type="number" min="0" step="1" required />
+          </label>
+          <label>Tolls and parking
+            <input name="tolls" type="number" min="0" step="1" required />
+          </label>
+          <label>Heat
+            <input name="heat" type="number" min="0" step="1" required />
+          </label>
+          <label>Utilities
+            <input name="utilities" type="number" min="0" step="1" required />
+          </label>
+        </div>
+
+        <div class="button-row">
+          <button class="primary-button" type="submit">Calculate fit</button>
+          <button class="ghost-button" type="button" data-reset-demo>Reset demo client</button>
+        </div>
+        <p class="record-note" data-load-note hidden></p>
+        <p class="error-message" role="alert" hidden data-error></p>
+      </form>
+
+      <section class="card result-card" aria-live="polite" data-results hidden>
+        <div class="section-heading">
+          <p class="eyebrow">Step 2</p>
+          <h2>Target ZIP result</h2>
+        </div>
+        <div class="score-panel" data-score-state>
+          <span class="score-number" data-score></span>
+          <span class="score-label" data-label></span>
+          <p data-explanation></p>
+        </div>
+        <dl class="metric-strip">
+          <div><dt>Monthly basket</dt><dd data-basket></dd></div>
+          <div><dt>Income remaining</dt><dd data-remaining></dd></div>
+          <div><dt>One-way commute</dt><dd data-commute></dd></div>
+        </dl>
+        <h3>Seven-category breakdown</h3>
+        <div class="breakdown" data-breakdown></div>
+      </section>
+    </section>
+
+    <section class="card" data-alternative-section hidden>
+      <div class="section-heading">
+        <p class="eyebrow">Step 3</p>
+        <h2>Better-fit Stamford areas</h2>
+        <p data-no-improvement hidden></p>
+      </div>
+      <div class="alternatives" data-alternatives></div>
+    </section>
+
+    <section class="card compare-card" data-compare-section hidden>
+      <div class="section-heading">
+        <p class="eyebrow">Step 4</p>
+        <h2>Target versus alternative</h2>
+      </div>
+      <div class="compare-grid" data-comparison></div>
+    </section>
+
+    <section class="card insight-card" data-insight-section hidden>
+      <div class="section-heading">
+        <p class="eyebrow">AVA Insight</p>
+        <h2>Talking points</h2>
+      </div>
+      <ul data-insight></ul>
+    </section>
+
+    <section class="card source-card">
+      <div class="section-heading">
+        <p class="eyebrow">Data quality</p>
+        <h2>What the prototype can claim</h2>
+      </div>
+      <div class="source-grid">
+        <article><strong>ZIP-level source data</strong><p>Rent baselines use HUD Small Area Fair Market Rent by ZIP.</p></article>
+        <article><strong>State/national baseline data</strong><p>Food and energy values use broad public baselines and are editable.</p></article>
+        <article><strong>Demo estimates</strong><p>Commute, dining, tolls, parking, clients, and properties support the demo story. They are not live traffic or a listing feed.</p></article>
+      </div>
+      <ul class="source-list">
+        <li>{foodProvenance.label} · {foodProvenance.asOf} · {foodProvenance.precision}</li>
+        <li>{fuelAssumption.provenance.label} · {fuelAssumption.provenance.asOf} · {fuelAssumption.provenance.precision}</li>
+        <li>{restaurantProvenance.label} · {restaurantProvenance.precision}</li>
+        <li>{tollProvenance.label} · {tollProvenance.precision}</li>
+        <li>{commuteProvenance.label}. Map data © OpenStreetMap contributors. Routing estimate by OSRM.</li>
+        <li>Client and property records are fictional preview records. They are not saved after refresh.</li>
+      </ul>
+    </section>
+  </div>
+
+  <section class="card workspace-card" data-view="clients" hidden>
+    <div class="section-heading workspace-heading">
+      <div>
+        <p class="eyebrow">Clients · Preview</p>
+        <h2>Saved clients</h2>
+        <p>Open a client record, then select Use in calculator to pull that client basket into the calculator.</p>
+      </div>
+      <div class="workspace-actions">
+        <button class="secondary-button" type="button" data-nav-view="properties">Properties</button>
+        <button class="ghost-button" type="button" data-nav-view="calculator">Back to calculator</button>
+      </div>
+    </div>
+    <div class="record-grid">
+      {demoClients.map((client) => (
+        <article class="record-card">
+          <span class="badge">{client.label}</span>
+          <h3>{client.name}</h3>
+          <p>{client.status}</p>
+          <dl class="record-metrics">
+            <div><dt>Income</dt><dd>${client.scenario.monthlyTakeHomeIncome.toLocaleString()}</dd></div>
+            <div><dt>Target</dt><dd>{client.scenario.targetZip}</dd></div>
+            <div><dt>Rent</dt><dd>${client.scenario.targetRent.toLocaleString()}</dd></div>
+          </dl>
+          <button class="secondary-button" type="button" data-open-client={client.id}>Open client</button>
+        </article>
+      ))}
+    </div>
+    <p class="record-note">Preview records are bundled demo data. They show the save and retrieve workflow; they do not persist after refresh.</p>
+  </section>
+
+  <section class="card workspace-card" data-view="properties" hidden>
+    <div class="section-heading workspace-heading">
+      <div>
+        <p class="eyebrow">Properties · Preview</p>
+        <h2>Stamford homes and buildings</h2>
+        <p>Open a fictional property, then select Use in calculator to pull its ZIP and rent into the calculator.</p>
+      </div>
+      <button class="ghost-button" type="button" data-nav-view="calculator">Back to calculator</button>
+    </div>
+    <div class="property-grid">
+      {demoProperties.map((property) => (
+        <article class="property-card" data-open-property={property.id}>
+          <img src={property.image} alt={property.imageAlt} loading="lazy" />
+          <div>
+            <span class="badge">{property.label}</span>
+            <h3>{property.title}</h3>
+            <p>{property.areaName} · {property.zip}</p>
+            <dl class="record-metrics">
+              <div><dt>Price</dt><dd>{property.price}</dd></div>
+              <div><dt>Beds</dt><dd>{property.beds}</dd></div>
+              <div><dt>Baths</dt><dd>{property.baths}</dd></div>
+            </dl>
+            <button class="secondary-button" type="button" data-open-property={property.id}>Open Demo property</button>
+          </div>
+        </article>
+      ))}
+    </div>
+    <p class="record-note">These are fictional demo properties with local illustrations. They are not active listings.</p>
+  </section>
+
+  <dialog class="preview-dialog" data-detail-dialog aria-labelledby="detail-title">
+    <div class="dialog-header">
+      <h2 id="detail-title" data-detail-title>Record preview</h2>
+      <button class="ghost-button" type="button" data-close-detail>Close</button>
+    </div>
+    <div data-detail-body></div>
+  </dialog>
+
+  <dialog class="preview-dialog" data-preview-dialog aria-labelledby="preview-title">
+    <div class="dialog-header">
+      <h2 id="preview-title">Upgrade</h2>
+      <button class="ghost-button" type="button" data-close-preview>Close</button>
+    </div>
+    <div class="tier-grid plan-grid">
+      <article><span class="badge">Single Agent · Preview</span><h3>Client and property workspace</h3><p>Save clients, save properties, pull records into the calculator, and export branded reports.</p></article>
+      <article><span class="badge">Agency · Preview</span><h3>Shared office workflow</h3><p>Team access, shared client and property records, manager review, and agency controls.</p></article>
+    </div>
+    <p class="record-note">Accounts, saving, checkout, teams, and live listing connections are preview concepts in this static demo.</p>
+  </dialog>
+
+  <script>
+    // @ts-nocheck
+    import { compareStamfordScenario } from "../lib/affordability.ts";
+    import { demoClients, demoProperties } from "../data/demo-workspace.ts";
+    import { preparedScenario, stamfordProfiles } from "../data/stamford.ts";
+
+    const form = document.querySelector("#scenario-form");
+    const error = document.querySelector("[data-error]");
+    const loadNote = document.querySelector("[data-load-note]");
+    const loadDemoButtons = document.querySelectorAll("[data-load-demo], [data-reset-demo]");
+    const previewDialog = document.querySelector("[data-preview-dialog]");
+    const detailDialog = document.querySelector("[data-detail-dialog]");
+    const openPreviewButtons = document.querySelectorAll("[data-open-preview]");
+    const closePreview = document.querySelector("[data-close-preview]");
+    const closeDetail = document.querySelector("[data-close-detail]");
+    const detailTitle = document.querySelector("[data-detail-title]");
+    const detailBody = document.querySelector("[data-detail-body]");
+    let latestResult;
+    let selectedDetail;
+
+    const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+    const signedCurrency = (value) => `${value >= 0 ? "+" : "-"}${currency.format(Math.abs(value))}`;
+    const categories = ["rent", "groceries", "gas", "restaurants", "tolls", "heat", "utilities"];
+
+    function setView(view) {
+      document.querySelectorAll("[data-view]").forEach((section) => {
+        section.hidden = section.dataset.view !== view;
+      });
+      document.querySelectorAll("[data-nav-view]").forEach((button) => {
+        const isActive = button.dataset.navView === view;
+        button.setAttribute("aria-pressed", String(isActive));
+      });
+    }
+
+    function fillFields(values) {
+      Object.entries(values).forEach(([key, value]) => {
+        const field = form.elements.namedItem(key);
+        if (field) field.value = String(value);
+      });
+    }
+
+    function fillDemo() {
+      fillFields(preparedScenario);
+      loadNote.hidden = true;
+    }
+
+    function readScenario() {
+      const data = new FormData(form);
+      return {
+        monthlyTakeHomeIncome: Number(data.get("monthlyTakeHomeIncome")),
+        householdSize: Number(data.get("householdSize")),
+        targetZip: String(data.get("targetZip")),
+        targetRent: Number(data.get("targetRent")),
+        workZip: String(data.get("workZip")),
+        commuteDaysPerWeek: Number(data.get("commuteDaysPerWeek")),
+        groceries: Number(data.get("groceries")),
+        restaurants: Number(data.get("restaurants")),
+        tolls: Number(data.get("tolls")),
+        heat: Number(data.get("heat")),
+        utilities: Number(data.get("utilities"))
+      };
+    }
+
+    function render(result) {
+      latestResult = result;
+      error.hidden = true;
+      document.querySelector("[data-results]").hidden = false;
+      document.querySelector("[data-alternative-section]").hidden = false;
+      document.querySelector("[data-insight-section]").hidden = false;
+
+      const target = result.target;
+      document.querySelector("[data-score]").textContent = `${target.fitScore}/100`;
+      document.querySelector("[data-label]").textContent = target.fitLabel;
+      document.querySelector("[data-score-state]").dataset.state = target.fitLabel.toLowerCase();
+      document.querySelector("[data-explanation]").textContent = `${target.fitLabel} means ${target.fitScore}% of take-home income remains after this basket.`;
+      document.querySelector("[data-basket]").textContent = currency.format(target.monthlyBasket);
+      document.querySelector("[data-remaining]").textContent = signedCurrency(target.remainingDollars);
+      document.querySelector("[data-commute]").textContent = `${target.commuteMinutesOneWay} min · ${target.commuteMilesOneWay} mi`;
+      document.querySelector("[data-breakdown]").innerHTML = categories.map((category) => `<div><span>${category}</span><strong>${currency.format(target.breakdown[category])}</strong></div>`).join("");
+
+      const noImprovement = document.querySelector("[data-no-improvement]");
+      noImprovement.hidden = !result.noImprovementMessage;
+      noImprovement.textContent = result.noImprovementMessage || "";
+      document.querySelector("[data-alternatives]").innerHTML = result.alternatives.slice(0, 3).map((alternative, index) => `
+        <article class="alternative-card">
+          <span class="rank">#${index + 1}</span>
+          <h3>${alternative.zip} · ${alternative.areaName}</h3>
+          <p>${signedCurrency(alternative.deltaRemaining)} monthly difference. ${alternative.fitLabel}, ${alternative.fitScore}/100.</p>
+          <button class="secondary-button" type="button" data-compare-zip="${alternative.zip}">Compare</button>
+        </article>`).join("");
+      document.querySelectorAll("[data-compare-zip]").forEach((button) => {
+        button.addEventListener("click", () => renderComparison(button.dataset.compareZip));
+      });
+      renderComparison(result.bestAlternative?.zip || result.alternatives[0]?.zip);
+      document.querySelector("[data-insight]").innerHTML = result.insight.map((line) => `<li>${line}</li>`).join("");
+    }
+
+    function renderComparison(zip) {
+      if (!zip || !latestResult) return;
+      const alternative = latestResult.alternatives.find((item) => item.zip === zip);
+      if (!alternative) return;
+      document.querySelector("[data-compare-section]").hidden = false;
+      const card = (title, item) => `<article><h3>${title}</h3><dl><div><dt>Monthly basket</dt><dd>${currency.format(item.monthlyBasket)}</dd></div><div><dt>Monthly remaining</dt><dd>${signedCurrency(item.remainingDollars)}</dd></div><div><dt>Score</dt><dd>${item.fitScore}/100 · ${item.fitLabel}</dd></div><div><dt>Rent</dt><dd>${currency.format(item.breakdown.rent)}</dd></div><div><dt>One-way commute</dt><dd>${item.commuteMinutesOneWay} min</dd></div></dl></article>`;
+      document.querySelector("[data-comparison]").innerHTML = `
+        ${card(`${latestResult.target.zip} target`, latestResult.target)}
+        ${card(`${alternative.zip} alternative`, alternative)}
+        <article class="delta-card"><h3>Deltas</h3><p>Rent: ${signedCurrency(alternative.deltaRent)}</p><p>Commute: ${alternative.deltaCommuteMinutes >= 0 ? "+" : ""}${alternative.deltaCommuteMinutes} min one way</p><p>Remaining: ${signedCurrency(alternative.deltaRemaining)}</p></article>`;
+    }
+
+    function calculateScenario() {
+      try {
+        render(compareStamfordScenario(readScenario(), stamfordProfiles));
+      } catch (caught) {
+        error.textContent = caught instanceof Error ? caught.message : "Check the scenario values.";
+        error.hidden = false;
+      }
+    }
+
+    function openClientDetail(client) {
+      selectedDetail = { type: "client", record: client };
+      detailTitle.textContent = client.name;
+      detailBody.innerHTML = `
+        <div class="detail-layout">
+          <div><span class="badge">${client.label}</span><h3>${client.status}</h3><p>${client.goal}</p><p>${client.notes}</p></div>
+          <dl class="record-metrics detail-metrics"><div><dt>Income</dt><dd>${currency.format(client.scenario.monthlyTakeHomeIncome)}</dd></div><div><dt>Target ZIP</dt><dd>${client.scenario.targetZip}</dd></div><div><dt>Rent</dt><dd>${currency.format(client.scenario.targetRent)}</dd></div><div><dt>Work ZIP</dt><dd>${client.scenario.workZip}</dd></div></dl>
+        </div>
+        <button class="primary-button" type="button" data-use-detail>Use in calculator</button>`;
+      detailDialog.showModal();
+    }
+
+    function openPropertyDetail(property) {
+      selectedDetail = { type: "property", record: property };
+      detailTitle.textContent = property.title;
+      detailBody.innerHTML = `
+        <div class="detail-layout">
+          <img class="detail-image" src="${property.image}" alt="${property.imageAlt}" />
+          <div><span class="badge">${property.label}</span><h3>${property.areaName} · ${property.zip}</h3><p>${property.description}</p><ul>${property.highlights.map((item) => `<li>${item}</li>`).join("")}</ul></div>
+          <dl class="record-metrics detail-metrics"><div><dt>Price</dt><dd>${property.price}</dd></div><div><dt>Beds</dt><dd>${property.beds}</dd></div><div><dt>Baths</dt><dd>${property.baths}</dd></div><div><dt>Loaded fields</dt><dd>ZIP and rent</dd></div></dl>
+        </div>
+        <p class="record-note">This loads only target ZIP and expected rent. Other client values stay unchanged.</p>
+        <button class="primary-button" type="button" data-use-detail>Use in calculator</button>`;
+      detailDialog.showModal();
+    }
+
+    function useSelectedDetail() {
+      if (!selectedDetail) return;
+      if (selectedDetail.type === "client") {
+        fillFields(selectedDetail.record.scenario);
+        loadNote.textContent = `${selectedDetail.record.name} loaded from Clients Preview. Values are demo data in this browser page only.`;
+      } else {
+        fillFields({ targetZip: selectedDetail.record.zip, targetRent: selectedDetail.record.rent });
+        loadNote.textContent = `${selectedDetail.record.title} loaded from Properties Preview. Only ZIP and rent changed.`;
+      }
+      loadNote.hidden = false;
+      detailDialog.close();
+      setView("calculator");
+      form.requestSubmit();
+      form.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      calculateScenario();
+    });
+    loadDemoButtons.forEach((button) => button.addEventListener("click", () => { fillDemo(); form.requestSubmit(); }));
+    document.querySelectorAll("[data-nav-view]").forEach((button) => {
+      button.addEventListener("click", () => setView(button.dataset.navView));
+    });
+    document.querySelectorAll("[data-open-client]").forEach((button) => {
+      button.addEventListener("click", () => openClientDetail(demoClients.find((client) => client.id === button.dataset.openClient)));
+    });
+    document.querySelectorAll("[data-open-property]").forEach((button) => {
+      button.addEventListener("click", () => openPropertyDetail(demoProperties.find((property) => property.id === button.dataset.openProperty)));
+    });
+    detailDialog.addEventListener("click", (event) => {
+      if (event.target.matches("[data-use-detail]")) useSelectedDetail();
+    });
+    openPreviewButtons.forEach((button) => button.addEventListener("click", () => previewDialog.showModal()));
+    closePreview.addEventListener("click", () => previewDialog.close());
+    closeDetail.addEventListener("click", () => detailDialog.close());
+    fillDemo();
+    setView("calculator");
+  </script>
+</AppLayout>
