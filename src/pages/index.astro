@@ -401,7 +401,10 @@ import {
       button.addEventListener("click", () => openClientDetail(demoClients.find((client) => client.id === button.dataset.openClient)));
     });
     document.querySelectorAll("[data-open-property]").forEach((button) => {
-      button.addEventListener("click", () => openPropertyDetail(demoProperties.find((property) => property.id === button.dataset.openProperty)));
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        openPropertyDetail(demoProperties.find((property) => property.id === button.dataset.openProperty));
+      });
     });
     detailDialog.addEventListener("click", (event) => {
       if (event.target.matches("[data-use-detail]")) useSelectedDetail();

@@ -48,14 +48,14 @@ devServerCommand: "deno task dev --host 0.0.0.0"
 devServerUrl: "http://localhost:4321"
 devServerHmr: true
 createdAt: "2026-08-19T18:42:00-04:00"
-updatedAt: "2026-08-19T23:02:13.744Z"
-status: "implemented"
+updatedAt: "2026-08-19T23:06:03.815Z"
+status: "validated_reviewer"
 origin: "internal"
 implementedAt: "2026-08-19T23:02:13.744Z"
 userVerifiedAt: null
 executionReport: "- Implemented offline Clients and Properties preview workspaces, local fictional property SVGs, detail dialogs, and Use in calculator flows while preserving the existing affordability calculation path.\n- Revised Upgrade to exactly Single Agent and Agency; removed Free, Agent Pro, and Enterprise from the built UI.\n- Merged `main` into the worktree without committing; used a temporary targeted stash to protect local work, restored the preview changes, and dropped the stash after verification.\n- Updated `docs/demo-handoff.md` with the new click path, preview boundaries, and fictional/no-live-listing disclaimer.\n- Verification passed: `deno task test` (11 passed), `deno task check` (0 errors), `deno task build`, OC1, and OC2.\n- Headed browser verified at `http://localhost:4331/`: desktop 1440×1000 home, Clients detail load, Properties detail load, Upgrade tiers, and mobile 390×844 Clients/Properties layout.\n- Visible evidence saved: `artifacts/final-property-loaded-desktop.png`, `artifacts/final-properties-mobile.png`, plus earlier `artifacts/clients-preview.png`, `artifacts/properties-preview.png`, `artifacts/property-loaded-calculator.png`.\n- Browser diagnostics: no page errors, no console output, and network requests were only local property SVGs with 200 responses."
-humanReviewMode: null
-humanReviewDecision: null
+humanReviewMode: "ask"
+humanReviewDecision: "skipped"
 validationCheckpoint: null
 executionMode: "worktree"
 executionBaselineTree: "5b518ae076e59752c78f916d81f7a422a4d03452"
@@ -66,7 +66,7 @@ worktreeBaseBranch: "main"
 worktreeStatus: "completed"
 validationCiAttempts: 0
 validationObjectiveCheckAttempts: 0
-validationSemanticRounds: 0
+validationSemanticRounds: 1
 ---
 
 # Add Client and Property Preview Screens
