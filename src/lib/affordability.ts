@@ -13,11 +13,7 @@ export interface ScenarioInput {
   targetRent: number;
   workZip: string;
   commuteDaysPerWeek: number;
-  groceries: number;
-  restaurants: number;
-  tolls: number;
-  heat: number;
-  utilities: number;
+  additionalHouseholdExpenses: number;
 }
 
 export interface BasketBreakdown {
@@ -28,6 +24,7 @@ export interface BasketBreakdown {
   tolls: number;
   heat: number;
   utilities: number;
+  additionalHouseholdExpenses: number;
 }
 
 export type FitLabel = "Comfortable" | "Tight" | "Reconsider";
@@ -61,6 +58,8 @@ export interface ComparisonResult {
 export type ProfileMap = Record<StamfordZip, StamfordProfile>;
 
 const zipSet = new Set<string>(supportedZips);
+// The prepared demo basket uses two-person household costs as its baseline.
+const householdCostBaselineSize = 2;
 
 export function isSupportedZip(zip: string): zip is StamfordZip {
   return zipSet.has(zip);
@@ -104,11 +103,7 @@ function validateInput(
   assertPositive(input.monthlyTakeHomeIncome, "Monthly take-home income");
   assertPositive(input.householdSize, "Household size");
   assertNonnegative(input.targetRent, "Expected rent");
-  assertNonnegative(input.groceries, "Groceries");
-  assertNonnegative(input.restaurants, "Restaurants");
-  assertNonnegative(input.tolls, "Tolls");
-  assertNonnegative(input.heat, "Heat");
-  assertNonnegative(input.utilities, "Utilities");
+  assertNonnegative(input.additionalHouseholdExpenses, "Additional household expenses");
   assertNonnegative(input.commuteDaysPerWeek, "Commute days per week");
   if (input.commuteDaysPerWeek > 7) throw new Error("Commute days per week must be 7 or less.");
   if (!Number.isInteger(input.householdSize)) {
@@ -143,18 +138,26 @@ function evaluateZip(
     commute.milesOneWay * 2 * input.commuteDaysPerWeek * fuelAssumption.weeksPerMonth /
       fuelAssumption.milesPerGallon * fuelAssumption.dollarsPerGallon,
   );
+  const householdScale = input.householdSize / householdCostBaselineSize;
   const breakdown: BasketBreakdown = {
     rent,
-    groceries: input.groceries,
+    groceries: roundMoney(profile.groceries * householdScale),
     gas,
-    restaurants: input.restaurants,
-    tolls: input.tolls,
-    heat: input.heat,
-    utilities: input.utilities,
+    restaurants: roundMoney(profile.restaurants * householdScale),
+    tolls: profile.tolls,
+    heat: roundMoney(profile.heat * householdScale),
+    utilities: roundMoney(profile.utilities * householdScale),
+    additionalHouseholdExpenses: input.additionalHouseholdExpenses,
   };
   const monthlyBasket = roundMoney(Object.values(breakdown).reduce((sum, value) => sum + value, 0));
   const remainingDollars = roundMoney(input.monthlyTakeHomeIncome - monthlyBasket);
-  const fitScore = clamp(Math.round(100 * remainingDollars / input.monthlyTakeHomeIncome), 0, 100);
+  const remainingPercent = 100 * remainingDollars / input.monthlyTakeHomeIncome;
+  const fitScore = clamp(Math.round(100 * remainingPercent / 40), 0, 100);
+  const fitLabel: FitLabel = remainingPercent >= 30
+    ? "Comfortable"
+    : remainingPercent >= 15
+    ? "Tight"
+    : "Reconsider";
   return {
     zip: profile.zip,
     areaName: profile.areaName,
@@ -162,7 +165,7 @@ function evaluateZip(
     monthlyBasket,
     remainingDollars,
     fitScore,
-    fitLabel: fitScore >= 30 ? "Comfortable" : fitScore >= 15 ? "Tight" : "Reconsider",
+    fitLabel,
     commuteMinutesOneWay: commute.minutesOneWay,
     commuteMilesOneWay: commute.milesOneWay,
   };
@@ -215,7 +218,9 @@ function buildInsight(
 }
 
 function labelForCategory(category: keyof BasketBreakdown): string {
-  return category === "rent" ? "rent" : category;
+  if (category === "rent") return "rent";
+  if (category === "additionalHouseholdExpenses") return "additional household expenses";
+  return category;
 }
 
 function clamp(value: number, min: number, max: number): number {

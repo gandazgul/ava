@@ -33,7 +33,8 @@ export const demoClients: DemoClientRecord[] = [
     label: "Saved client · Preview data",
     status: "Touring South Stamford rentals",
     goal: "Needs a strong commute story and a rent ceiling near $2,850.",
-    notes: "Prepared demo client. Values reload into the calculator but are not persisted after refresh.",
+    notes:
+      "Prepared demo client. Values reload into the calculator but are not persisted after refresh.",
     scenario: {
       clientName: "Jordan M.",
       monthlyTakeHomeIncome: 7200,
@@ -42,11 +43,7 @@ export const demoClients: DemoClientRecord[] = [
       targetRent: 2850,
       workZip: "06901",
       commuteDaysPerWeek: 4,
-      groceries: 760,
-      restaurants: 380,
-      tolls: 85,
-      heat: 160,
-      utilities: 220,
+      additionalHouseholdExpenses: 0,
     },
   },
   {
@@ -64,11 +61,7 @@ export const demoClients: DemoClientRecord[] = [
       targetRent: 2600,
       workZip: "06901",
       commuteDaysPerWeek: 3,
-      groceries: 780,
-      restaurants: 420,
-      tolls: 60,
-      heat: 155,
-      utilities: 210,
+      additionalHouseholdExpenses: 0,
     },
   },
   {
@@ -86,11 +79,7 @@ export const demoClients: DemoClientRecord[] = [
       targetRent: 2450,
       workZip: "06902",
       commuteDaysPerWeek: 5,
-      groceries: 910,
-      restaurants: 330,
-      tolls: 95,
-      heat: 185,
-      utilities: 240,
+      additionalHouseholdExpenses: 0,
     },
   },
 ];
@@ -108,7 +97,8 @@ export const demoProperties: DemoPropertyRecord[] = [
     baths: 2,
     image: "/demo-properties/cove-townhome.svg",
     imageAlt: "Illustration of a two-story townhome near the Cove area of Stamford",
-    description: "A fictional townhome-style rental used to show how an agent can pull a property into the calculator.",
+    description:
+      "A fictional townhome-style rental used to show how an agent can pull a property into the calculator.",
     highlights: ["Near Cove parks", "Two bedrooms", "Quick drive to downtown"],
   },
   {
@@ -123,7 +113,8 @@ export const demoProperties: DemoPropertyRecord[] = [
     baths: 1,
     image: "/demo-properties/glenbrook-condo.svg",
     imageAlt: "Illustration of a mid-rise condo building in Glenbrook Stamford",
-    description: "A fictional condo record for previewing saved property retrieval and ZIP comparison.",
+    description:
+      "A fictional condo record for previewing saved property retrieval and ZIP comparison.",
     highlights: ["Close to rail", "Lower rent target", "Short downtown commute"],
   },
   {
@@ -138,7 +129,8 @@ export const demoProperties: DemoPropertyRecord[] = [
     baths: 2,
     image: "/demo-properties/springdale-duplex.svg",
     imageAlt: "Illustration of a duplex home in Springdale Stamford",
-    description: "A fictional home-style rental that helps show saved houses and building records in one Properties view.",
+    description:
+      "A fictional home-style rental that helps show saved houses and building records in one Properties view.",
     highlights: ["Three bedrooms", "Residential street", "Works for family tours"],
   },
 ];

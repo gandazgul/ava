@@ -17,10 +17,16 @@ export interface StamfordProfile {
   zip: StamfordZip;
   areaName: string;
   rent: number;
+  groceries: number;
+  restaurants: number;
+  tolls: number;
   heat: number;
   utilities: number;
   provenance: {
     rent: Provenance;
+    groceries: Provenance;
+    restaurants: Provenance;
+    tolls: Provenance;
     heat: Provenance;
     utilities: Provenance;
   };
@@ -40,11 +46,7 @@ export interface PreparedScenario {
   targetRent: number;
   workZip: StamfordZip;
   commuteDaysPerWeek: number;
-  groceries: number;
-  restaurants: number;
-  tolls: number;
-  heat: number;
-  utilities: number;
+  additionalHouseholdExpenses: number;
 }
 
 const hudRent = (zip: StamfordZip): Provenance => ({
@@ -62,21 +64,21 @@ const energy = (label: string): Provenance => ({
 });
 
 export const foodProvenance: Provenance = {
-  label: "USDA moderate food plan broad baseline, editable for client basket",
+  label: "USDA moderate food plan broad baseline used as a local average",
   asOf: "2025",
   source: "https://www.fns.usda.gov/cnpp/usda-food-plans-cost-food-monthly-reports",
   precision: "state/national baseline data",
 };
 
 export const restaurantProvenance: Provenance = {
-  label: "Local dining allowance set for demo persona, editable by agent",
+  label: "Local dining allowance used as a ZIP average",
   asOf: "2026-08-19",
   source: "demo estimate",
   precision: "demo estimate",
 };
 
 export const tollProvenance: Provenance = {
-  label: "Expected monthly toll/parking allowance for prepared commute, editable by agent",
+  label: "Expected monthly toll/parking allowance used as a commute-area average",
   asOf: "2026-08-19",
   source: "demo estimate",
   precision: "demo estimate",
@@ -104,11 +106,7 @@ export const preparedScenario: PreparedScenario = {
   targetRent: 2850,
   workZip: "06901",
   commuteDaysPerWeek: 4,
-  groceries: 760,
-  restaurants: 380,
-  tolls: 85,
-  heat: 160,
-  utilities: 220,
+  additionalHouseholdExpenses: 0,
 };
 
 export const stamfordProfiles: Record<StamfordZip, StamfordProfile> = {
@@ -116,10 +114,16 @@ export const stamfordProfiles: Record<StamfordZip, StamfordProfile> = {
     zip: "06901",
     areaName: "Downtown Stamford",
     rent: 2750,
+    groceries: 760,
+    restaurants: 380,
+    tolls: 85,
     heat: 145,
     utilities: 215,
     provenance: {
       rent: hudRent("06901"),
+      groceries: foodProvenance,
+      restaurants: restaurantProvenance,
+      tolls: tollProvenance,
       heat: energy("Connecticut residential heat estimate"),
       utilities: energy("Connecticut residential electricity and utility estimate"),
     },
@@ -128,10 +132,16 @@ export const stamfordProfiles: Record<StamfordZip, StamfordProfile> = {
     zip: "06902",
     areaName: "South and Cove Stamford",
     rent: 2825,
+    groceries: 760,
+    restaurants: 380,
+    tolls: 85,
     heat: 160,
     utilities: 220,
     provenance: {
       rent: hudRent("06902"),
+      groceries: foodProvenance,
+      restaurants: restaurantProvenance,
+      tolls: tollProvenance,
       heat: energy("Connecticut residential heat estimate"),
       utilities: energy("Connecticut residential electricity and utility estimate"),
     },
@@ -140,10 +150,16 @@ export const stamfordProfiles: Record<StamfordZip, StamfordProfile> = {
     zip: "06903",
     areaName: "North Stamford",
     rent: 2550,
+    groceries: 760,
+    restaurants: 380,
+    tolls: 85,
     heat: 185,
     utilities: 240,
     provenance: {
       rent: hudRent("06903"),
+      groceries: foodProvenance,
+      restaurants: restaurantProvenance,
+      tolls: tollProvenance,
       heat: energy("Connecticut residential heat estimate"),
       utilities: energy("Connecticut residential electricity and utility estimate"),
     },
@@ -152,10 +168,16 @@ export const stamfordProfiles: Record<StamfordZip, StamfordProfile> = {
     zip: "06905",
     areaName: "Mid-Ridges Stamford",
     rent: 2475,
+    groceries: 760,
+    restaurants: 380,
+    tolls: 85,
     heat: 170,
     utilities: 225,
     provenance: {
       rent: hudRent("06905"),
+      groceries: foodProvenance,
+      restaurants: restaurantProvenance,
+      tolls: tollProvenance,
       heat: energy("Connecticut residential heat estimate"),
       utilities: energy("Connecticut residential electricity and utility estimate"),
     },
@@ -164,10 +186,16 @@ export const stamfordProfiles: Record<StamfordZip, StamfordProfile> = {
     zip: "06906",
     areaName: "Glenbrook Stamford",
     rent: 2350,
+    groceries: 760,
+    restaurants: 380,
+    tolls: 85,
     heat: 155,
     utilities: 210,
     provenance: {
       rent: hudRent("06906"),
+      groceries: foodProvenance,
+      restaurants: restaurantProvenance,
+      tolls: tollProvenance,
       heat: energy("Connecticut residential heat estimate"),
       utilities: energy("Connecticut residential electricity and utility estimate"),
     },
@@ -176,10 +204,16 @@ export const stamfordProfiles: Record<StamfordZip, StamfordProfile> = {
     zip: "06907",
     areaName: "Springdale Stamford",
     rent: 2425,
+    groceries: 760,
+    restaurants: 380,
+    tolls: 85,
     heat: 165,
     utilities: 215,
     provenance: {
       rent: hudRent("06907"),
+      groceries: foodProvenance,
+      restaurants: restaurantProvenance,
+      tolls: tollProvenance,
       heat: energy("Connecticut residential heat estimate"),
       utilities: energy("Connecticut residential electricity and utility estimate"),
     },

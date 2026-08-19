@@ -9,54 +9,115 @@ Deno.test("prepared scenario returns the expected target score and best alternat
 
   assertEquals(result.target.monthlyBasket, 4467.43);
   assertEquals(result.target.remainingDollars, 2732.57);
-  assertEquals(result.target.fitScore, 38);
+  assertEquals(result.target.fitScore, 95);
   assertEquals(result.target.fitLabel, "Comfortable");
   assertEquals(result.bestAlternative?.zip, "06906");
-  assertEquals(result.bestAlternative?.deltaRemaining, 499.05);
+  assertEquals(result.bestAlternative?.deltaRemaining, 514.05);
 });
 
-Deno.test("heat and utilities are editable scenario values", () => {
-  const result = compareStamfordScenario(
-    { ...baseInput, heat: 300, utilities: 400 },
-    stamfordProfiles,
-  );
+Deno.test("local average costs come from each ZIP profile", () => {
+  const result = compareStamfordScenario(baseInput, stamfordProfiles);
+  const alternative = result.alternatives.find((item) => item.zip === "06906");
 
-  assertEquals(result.target.breakdown.heat, 300);
-  assertEquals(result.target.breakdown.utilities, 400);
-  assertEquals(
-    result.alternatives.find((alternative) => alternative.zip === "06906")?.breakdown.heat,
-    300,
-  );
-  assertEquals(
-    result.alternatives.find((alternative) => alternative.zip === "06906")?.breakdown.utilities,
-    400,
-  );
+  assertEquals(result.target.breakdown.groceries, stamfordProfiles["06902"].groceries);
+  assertEquals(result.target.breakdown.restaurants, stamfordProfiles["06902"].restaurants);
+  assertEquals(result.target.breakdown.tolls, stamfordProfiles["06902"].tolls);
+  assertEquals(result.target.breakdown.heat, stamfordProfiles["06902"].heat);
+  assertEquals(result.target.breakdown.utilities, stamfordProfiles["06902"].utilities);
+  assertEquals(alternative?.breakdown.heat, stamfordProfiles["06906"].heat);
+  assertEquals(alternative?.breakdown.utilities, stamfordProfiles["06906"].utilities);
 });
 
-Deno.test("score formula uses take-home income remaining after the basket", () => {
-  const result = compareStamfordScenario(
+Deno.test("household size changes household-sensitive monthly costs", () => {
+  const onePerson = compareStamfordScenario({ ...baseInput, householdSize: 1 }, stamfordProfiles);
+  const threePeople = compareStamfordScenario({ ...baseInput, householdSize: 3 }, stamfordProfiles);
+
+  assertEquals(onePerson.target.monthlyBasket < baseInput.monthlyTakeHomeIncome, true);
+  assertEquals(threePeople.target.monthlyBasket > onePerson.target.monthlyBasket, true);
+  assertEquals(threePeople.target.remainingDollars < onePerson.target.remainingDollars, true);
+  assertEquals(threePeople.target.fitScore < onePerson.target.fitScore, true);
+});
+
+Deno.test("each scenario input changes the target calculation", () => {
+  const baseline = compareStamfordScenario(baseInput, stamfordProfiles).target;
+
+  const cases: Array<[string, ScenarioInput, unknown]> = [
+    [
+      "monthlyTakeHomeIncome",
+      { ...baseInput, monthlyTakeHomeIncome: baseInput.monthlyTakeHomeIncome + 100 },
+      baseline.remainingDollars,
+    ],
+    [
+      "householdSize",
+      { ...baseInput, householdSize: baseInput.householdSize + 1 },
+      baseline.monthlyBasket,
+    ],
+    ["targetZip", { ...baseInput, targetZip: "06906" }, baseline.zip],
+    [
+      "targetRent",
+      { ...baseInput, targetRent: baseInput.targetRent + 100 },
+      baseline.monthlyBasket,
+    ],
+    ["workZip", { ...baseInput, workZip: "06907" }, baseline.breakdown.gas],
+    [
+      "commuteDaysPerWeek",
+      { ...baseInput, commuteDaysPerWeek: baseInput.commuteDaysPerWeek + 1 },
+      baseline.breakdown.gas,
+    ],
+    [
+      "additionalHouseholdExpenses",
+      {
+        ...baseInput,
+        additionalHouseholdExpenses: baseInput.additionalHouseholdExpenses + 100,
+      },
+      baseline.monthlyBasket,
+    ],
+  ];
+
+  for (const [label, input, original] of cases) {
+    const target = compareStamfordScenario(input, stamfordProfiles).target;
+    const changed = label === "monthlyTakeHomeIncome"
+      ? target.remainingDollars
+      : label === "targetZip"
+      ? target.zip
+      : label === "workZip" || label === "commuteDaysPerWeek"
+      ? target.breakdown.gas
+      : target.monthlyBasket;
+
+    assertEquals(changed === original, false, `${label} should affect the target calculation.`);
+  }
+});
+
+Deno.test("score formula maps 40 percent remaining income to 100", () => {
+  const reconsider = compareStamfordScenario(
     { ...baseInput, monthlyTakeHomeIncome: 5000 },
     stamfordProfiles,
   );
+  const maxScore = compareStamfordScenario(
+    { ...baseInput, monthlyTakeHomeIncome: 7445.72 },
+    stamfordProfiles,
+  );
 
-  assertEquals(result.target.remainingDollars, 532.57);
-  assertEquals(result.target.fitScore, 11);
-  assertEquals(result.target.fitLabel, "Reconsider");
+  assertEquals(reconsider.target.remainingDollars, 532.57);
+  assertEquals(reconsider.target.fitScore, 27);
+  assertEquals(reconsider.target.fitLabel, "Reconsider");
+  assertEquals(maxScore.target.fitScore, 100);
+  assertEquals(maxScore.target.fitLabel, "Comfortable");
 });
 
-Deno.test("fit thresholds label 15 as Tight and 30 as Comfortable", () => {
+Deno.test("fit grades still use 15 and 30 percent remaining thresholds", () => {
   const tight = compareStamfordScenario(
     { ...baseInput, monthlyTakeHomeIncome: 5255.8 },
     stamfordProfiles,
   );
   const comfortable = compareStamfordScenario(
-    { ...baseInput, monthlyTakeHomeIncome: 6382.04 },
+    { ...baseInput, monthlyTakeHomeIncome: 6383 },
     stamfordProfiles,
   );
 
-  assertEquals(tight.target.fitScore, 15);
+  assertEquals(tight.target.fitScore, 38);
   assertEquals(tight.target.fitLabel, "Tight");
-  assertEquals(comfortable.target.fitScore, 30);
+  assertEquals(comfortable.target.fitScore, 75);
   assertEquals(comfortable.target.fitLabel, "Comfortable");
 });
 
@@ -137,9 +198,9 @@ Deno.test("validation rejects invalid inputs", () => {
   assertThrows(() =>
     compareStamfordScenario({ ...baseInput, monthlyTakeHomeIncome: 0 }, stamfordProfiles)
   );
-  assertThrows(() => compareStamfordScenario({ ...baseInput, groceries: -1 }, stamfordProfiles));
-  assertThrows(() => compareStamfordScenario({ ...baseInput, heat: -1 }, stamfordProfiles));
-  assertThrows(() => compareStamfordScenario({ ...baseInput, utilities: -1 }, stamfordProfiles));
+  assertThrows(() =>
+    compareStamfordScenario({ ...baseInput, additionalHouseholdExpenses: -1 }, stamfordProfiles)
+  );
   assertThrows(() =>
     compareStamfordScenario({ ...baseInput, targetZip: "10001" }, stamfordProfiles)
   );

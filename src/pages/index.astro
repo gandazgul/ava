@@ -8,7 +8,7 @@ import {
   restaurantProvenance,
   stamfordProfiles,
   supportedZips,
-  tollProvenance
+  tollProvenance,
 } from "../data/stamford.ts";
 ---
 
@@ -21,7 +21,6 @@ import {
         AVA keeps the calculator front and center, then lets an agent preview how saved clients and properties can be pulled into the same affordability workflow.
       </p>
       <div class="hero-actions">
-        <button class="primary-button" type="button" data-load-demo>Load demo client</button>
         <button class="secondary-button" type="button" data-nav-view="clients">Clients</button>
         <button class="secondary-button" type="button" data-nav-view="properties">Browse property previews</button>
       </div>
@@ -58,20 +57,8 @@ import {
           <label>Commute days per week
             <input name="commuteDaysPerWeek" type="number" min="0" max="7" step="1" required />
           </label>
-          <label>Groceries
-            <input name="groceries" type="number" min="0" step="1" required />
-          </label>
-          <label>Restaurants
-            <input name="restaurants" type="number" min="0" step="1" required />
-          </label>
-          <label>Tolls and parking
-            <input name="tolls" type="number" min="0" step="1" required />
-          </label>
-          <label>Heat
-            <input name="heat" type="number" min="0" step="1" required />
-          </label>
-          <label>Utilities
-            <input name="utilities" type="number" min="0" step="1" required />
+          <label>Additional household expenses
+            <input name="additionalHouseholdExpenses" type="number" min="0" step="1" placeholder="0" />
           </label>
         </div>
 
@@ -98,7 +85,7 @@ import {
           <div><dt>Income remaining</dt><dd data-remaining></dd></div>
           <div><dt>One-way commute</dt><dd data-commute></dd></div>
         </dl>
-        <h3>Seven-category breakdown</h3>
+        <h3>Local averages and client expenses</h3>
         <div class="breakdown" data-breakdown></div>
       </section>
     </section>
@@ -135,8 +122,8 @@ import {
       </div>
       <div class="source-grid">
         <article><strong>ZIP-level source data</strong><p>Rent baselines use HUD Small Area Fair Market Rent by ZIP.</p></article>
-        <article><strong>State/national baseline data</strong><p>Food and energy values use broad public baselines and are editable.</p></article>
-        <article><strong>Demo estimates</strong><p>Commute, dining, tolls, parking, clients, and properties support the demo story. They are not live traffic or a listing feed.</p></article>
+        <article><strong>State/national baseline data</strong><p>Food and energy values use broad public baselines as local averages.</p></article>
+        <article><strong>Demo estimates</strong><p>Commute, dining, tolls, parking, clients, and properties support the demo story. They are local average estimates, not live traffic or a listing feed.</p></article>
       </div>
       <ul class="source-list">
         <li>{foodProvenance.label} · {foodProvenance.asOf} · {foodProvenance.precision}</li>
@@ -238,7 +225,7 @@ import {
     const form = document.querySelector("#scenario-form");
     const error = document.querySelector("[data-error]");
     const loadNote = document.querySelector("[data-load-note]");
-    const loadDemoButtons = document.querySelectorAll("[data-load-demo], [data-reset-demo]");
+    const resetDemoButton = document.querySelector("[data-reset-demo]");
     const previewDialog = document.querySelector("[data-preview-dialog]");
     const detailDialog = document.querySelector("[data-detail-dialog]");
     const openPreviewButtons = document.querySelectorAll("[data-open-preview]");
@@ -247,11 +234,22 @@ import {
     const detailTitle = document.querySelector("[data-detail-title]");
     const detailBody = document.querySelector("[data-detail-body]");
     let latestResult;
+    let selectedComparisonZip;
     let selectedDetail;
 
     const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
     const signedCurrency = (value) => `${value >= 0 ? "+" : "-"}${currency.format(Math.abs(value))}`;
-    const categories = ["rent", "groceries", "gas", "restaurants", "tolls", "heat", "utilities"];
+    const categories = ["rent", "groceries", "gas", "restaurants", "tolls", "heat", "utilities", "additionalHouseholdExpenses"];
+    const categoryLabels = {
+      rent: "Rent",
+      groceries: "Groceries · local average",
+      gas: "Gas",
+      restaurants: "Restaurants · local average",
+      tolls: "Tolls and parking · local average",
+      heat: "Heat · local average",
+      utilities: "Utilities · local average",
+      additionalHouseholdExpenses: "Additional household expenses",
+    };
 
     function setView(view) {
       document.querySelectorAll("[data-view]").forEach((section) => {
@@ -284,11 +282,7 @@ import {
         targetRent: Number(data.get("targetRent")),
         workZip: String(data.get("workZip")),
         commuteDaysPerWeek: Number(data.get("commuteDaysPerWeek")),
-        groceries: Number(data.get("groceries")),
-        restaurants: Number(data.get("restaurants")),
-        tolls: Number(data.get("tolls")),
-        heat: Number(data.get("heat")),
-        utilities: Number(data.get("utilities"))
+        additionalHouseholdExpenses: Number(data.get("additionalHouseholdExpenses") || 0),
       };
     }
 
@@ -303,16 +297,30 @@ import {
       document.querySelector("[data-score]").textContent = `${target.fitScore}/100`;
       document.querySelector("[data-label]").textContent = target.fitLabel;
       document.querySelector("[data-score-state]").dataset.state = target.fitLabel.toLowerCase();
-      document.querySelector("[data-explanation]").textContent = `${target.fitLabel} means ${target.fitScore}% of take-home income remains after this basket.`;
+      const remainingPercent = Math.round(100 * target.remainingDollars / readScenario().monthlyTakeHomeIncome);
+      document.querySelector("[data-explanation]").textContent = `${target.fitLabel} means this basket leaves ${remainingPercent}% of take-home income after costs.`;
       document.querySelector("[data-basket]").textContent = currency.format(target.monthlyBasket);
       document.querySelector("[data-remaining]").textContent = signedCurrency(target.remainingDollars);
       document.querySelector("[data-commute]").textContent = `${target.commuteMinutesOneWay} min · ${target.commuteMilesOneWay} mi`;
-      document.querySelector("[data-breakdown]").innerHTML = categories.map((category) => `<div><span>${category}</span><strong>${currency.format(target.breakdown[category])}</strong></div>`).join("");
+      document.querySelector("[data-breakdown]").innerHTML = categories.map((category) => `<div><span>${categoryLabels[category]}</span><strong>${currency.format(target.breakdown[category])}</strong></div>`).join("");
 
       const noImprovement = document.querySelector("[data-no-improvement]");
       noImprovement.hidden = !result.noImprovementMessage;
       noImprovement.textContent = result.noImprovementMessage || "";
-      document.querySelector("[data-alternatives]").innerHTML = result.alternatives.slice(0, 3).map((alternative, index) => `
+      document.querySelector("[data-compare-section]").hidden = true;
+      document.querySelector("[data-comparison]").innerHTML = "";
+      if (selectedComparisonZip && result.alternatives.some((item) => item.zip === selectedComparisonZip)) {
+        renderSelectedComparison(selectedComparisonZip);
+      } else {
+        selectedComparisonZip = undefined;
+        renderAlternativeChoices();
+      }
+      document.querySelector("[data-insight]").innerHTML = result.insight.map((line) => `<li>${line}</li>`).join("");
+    }
+
+    function renderAlternativeChoices() {
+      document.querySelector("[data-alternatives]").className = "alternatives";
+      document.querySelector("[data-alternatives]").innerHTML = latestResult.alternatives.slice(0, 3).map((alternative, index) => `
         <article class="alternative-card">
           <span class="rank">#${index + 1}</span>
           <h3>${alternative.zip} · ${alternative.areaName}</h3>
@@ -320,22 +328,33 @@ import {
           <button class="secondary-button" type="button" data-compare-zip="${alternative.zip}">Compare</button>
         </article>`).join("");
       document.querySelectorAll("[data-compare-zip]").forEach((button) => {
-        button.addEventListener("click", () => renderComparison(button.dataset.compareZip));
+        button.addEventListener("click", () => {
+          selectedComparisonZip = button.dataset.compareZip;
+          renderSelectedComparison(selectedComparisonZip);
+        });
       });
-      renderComparison(result.bestAlternative?.zip || result.alternatives[0]?.zip);
-      document.querySelector("[data-insight]").innerHTML = result.insight.map((line) => `<li>${line}</li>`).join("");
     }
 
-    function renderComparison(zip) {
+    function renderSelectedComparison(zip) {
       if (!zip || !latestResult) return;
       const alternative = latestResult.alternatives.find((item) => item.zip === zip);
       if (!alternative) return;
-      document.querySelector("[data-compare-section]").hidden = false;
-      const card = (title, item) => `<article><h3>${title}</h3><dl><div><dt>Monthly basket</dt><dd>${currency.format(item.monthlyBasket)}</dd></div><div><dt>Monthly remaining</dt><dd>${signedCurrency(item.remainingDollars)}</dd></div><div><dt>Score</dt><dd>${item.fitScore}/100 · ${item.fitLabel}</dd></div><div><dt>Rent</dt><dd>${currency.format(item.breakdown.rent)}</dd></div><div><dt>One-way commute</dt><dd>${item.commuteMinutesOneWay} min</dd></div></dl></article>`;
-      document.querySelector("[data-comparison]").innerHTML = `
-        ${card(`${latestResult.target.zip} target`, latestResult.target)}
-        ${card(`${alternative.zip} alternative`, alternative)}
-        <article class="delta-card"><h3>Deltas</h3><p>Rent: ${signedCurrency(alternative.deltaRent)}</p><p>Commute: ${alternative.deltaCommuteMinutes >= 0 ? "+" : ""}${alternative.deltaCommuteMinutes} min one way</p><p>Remaining: ${signedCurrency(alternative.deltaRemaining)}</p></article>`;
+      const resultCard = (title, item) => `<article class="calculator-result-card"><h3>${title}</h3><div class="score-pill">${item.fitScore}/100 · ${item.fitLabel}</div><dl><div><dt>Monthly basket</dt><dd>${currency.format(item.monthlyBasket)}</dd></div><div><dt>Income remaining</dt><dd>${signedCurrency(item.remainingDollars)}</dd></div><div><dt>Rent</dt><dd>${currency.format(item.breakdown.rent)}</dd></div><div><dt>Groceries</dt><dd>${currency.format(item.breakdown.groceries)}</dd></div><div><dt>Gas</dt><dd>${currency.format(item.breakdown.gas)}</dd></div><div><dt>Restaurants</dt><dd>${currency.format(item.breakdown.restaurants)}</dd></div><div><dt>Tolls and parking</dt><dd>${currency.format(item.breakdown.tolls)}</dd></div><div><dt>Heat</dt><dd>${currency.format(item.breakdown.heat)}</dd></div><div><dt>Utilities</dt><dd>${currency.format(item.breakdown.utilities)}</dd></div><div><dt>Additional expenses</dt><dd>${currency.format(item.breakdown.additionalHouseholdExpenses)}</dd></div><div><dt>One-way commute</dt><dd>${item.commuteMinutesOneWay} min · ${item.commuteMilesOneWay} mi</dd></div></dl></article>`;
+      document.querySelector("[data-alternatives]").className = "selected-comparison";
+      document.querySelector("[data-alternatives]").innerHTML = `
+        <div class="comparison-toolbar">
+          <button class="ghost-button" type="button" data-back-to-alternatives>Back to 3 comparisons</button>
+          <p>Comparing target ZIP ${latestResult.target.zip} with ${alternative.zip} · ${alternative.areaName}.</p>
+        </div>
+        <div class="comparison-results-grid">
+          ${resultCard(`${latestResult.target.zip} target`, latestResult.target)}
+          ${resultCard(`${alternative.zip} selected neighborhood`, alternative)}
+        </div>
+        <article class="delta-card comparison-delta"><h3>Difference</h3><p>Rent: ${signedCurrency(alternative.deltaRent)}</p><p>Commute: ${alternative.deltaCommuteMinutes >= 0 ? "+" : ""}${alternative.deltaCommuteMinutes} min one way</p><p>Remaining: ${signedCurrency(alternative.deltaRemaining)}</p></article>`;
+      document.querySelector("[data-back-to-alternatives]").addEventListener("click", () => {
+        selectedComparisonZip = undefined;
+        renderAlternativeChoices();
+      });
     }
 
     function calculateScenario() {
@@ -393,7 +412,13 @@ import {
       event.preventDefault();
       calculateScenario();
     });
-    loadDemoButtons.forEach((button) => button.addEventListener("click", () => { fillDemo(); form.requestSubmit(); }));
+    form.addEventListener("input", () => {
+      if (!document.querySelector("[data-results]").hidden && form.checkValidity()) calculateScenario();
+    });
+    form.addEventListener("change", () => {
+      if (!document.querySelector("[data-results]").hidden && form.checkValidity()) calculateScenario();
+    });
+    resetDemoButton.addEventListener("click", () => { fillDemo(); form.requestSubmit(); });
     document.querySelectorAll("[data-nav-view]").forEach((button) => {
       button.addEventListener("click", () => setView(button.dataset.navView));
     });
