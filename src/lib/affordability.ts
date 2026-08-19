@@ -1,6 +1,10 @@
 import {
+  childcareProvenance,
+  childAgeBands,
+  childCostAssumptions,
   commuteMatrix,
   fuelAssumption,
+  type ChildAgeBand,
   type StamfordProfile,
   type StamfordZip,
   supportedZips,
@@ -8,7 +12,9 @@ import {
 
 export interface ScenarioInput {
   monthlyTakeHomeIncome: number;
-  householdSize: number;
+  adultCount: number;
+  children: ChildAgeBand[];
+  usesDaycare: boolean;
   targetZip: string;
   targetRent: number;
   workZip: string;
@@ -19,6 +25,8 @@ export interface ScenarioInput {
 export interface BasketBreakdown {
   rent: number;
   groceries: number;
+  childFood: number;
+  childcare: number;
   gas: number;
   restaurants: number;
   tolls: number;
@@ -58,7 +66,8 @@ export interface ComparisonResult {
 export type ProfileMap = Record<StamfordZip, StamfordProfile>;
 
 const zipSet = new Set<string>(supportedZips);
-// The prepared demo basket uses two-person household costs as its baseline.
+const childAgeBandSet = new Set<string>(childAgeBands);
+// The prepared demo basket uses two-adult household costs as its baseline.
 const householdCostBaselineSize = 2;
 
 export function isSupportedZip(zip: string): zip is StamfordZip {
@@ -101,19 +110,35 @@ function validateInput(
   workZip: StamfordZip;
 } {
   assertPositive(input.monthlyTakeHomeIncome, "Monthly take-home income");
-  assertPositive(input.householdSize, "Household size");
+  assertPositive(input.adultCount, "Adult count");
   assertNonnegative(input.targetRent, "Expected rent");
   assertNonnegative(input.additionalHouseholdExpenses, "Additional household expenses");
   assertNonnegative(input.commuteDaysPerWeek, "Commute days per week");
   if (input.commuteDaysPerWeek > 7) throw new Error("Commute days per week must be 7 or less.");
-  if (!Number.isInteger(input.householdSize)) {
-    throw new Error("Household size must be a whole number.");
+  if (!Number.isInteger(input.adultCount)) {
+    throw new Error("Adult count must be a whole number.");
+  }
+  if (!Array.isArray(input.children)) {
+    throw new Error("Children must be a list of supported age bands.");
+  }
+  for (const child of input.children) {
+    if (!childAgeBandSet.has(child)) {
+      throw new Error("Each child must use a supported age band.");
+    }
+  }
+  if (typeof input.usesDaycare !== "boolean") {
+    throw new Error("Paid daycare must be true or false.");
   }
   if (!isSupportedZip(input.targetZip)) {
     throw new Error("Target ZIP must be a supported Stamford ZIP.");
   }
   if (!isSupportedZip(input.workZip)) throw new Error("Work ZIP must be a supported Stamford ZIP.");
-  return { ...input, targetZip: input.targetZip, workZip: input.workZip };
+  return {
+    ...input,
+    children: [...input.children],
+    targetZip: input.targetZip,
+    workZip: input.workZip,
+  };
 }
 
 function assertPositive(value: number, label: string): void {
@@ -138,10 +163,24 @@ function evaluateZip(
     commute.milesOneWay * 2 * input.commuteDaysPerWeek * fuelAssumption.weeksPerMonth /
       fuelAssumption.milesPerGallon * fuelAssumption.dollarsPerGallon,
   );
-  const householdScale = input.householdSize / householdCostBaselineSize;
+  const totalPeople = input.adultCount + input.children.length;
+  const householdScale = totalPeople / householdCostBaselineSize;
+  const childFood = roundMoney(
+    input.children.reduce((sum, child) => sum + childCostAssumptions[child].monthlyFood, 0),
+  );
+  const childcare = input.usesDaycare
+    ? roundMoney(
+      input.children.reduce((sum, child) => {
+        const weeklyRate = childCostAssumptions[child].daycareWeekly ?? 0;
+        return sum + weeklyRate * fuelAssumption.weeksPerMonth;
+      }, 0),
+    )
+    : 0;
   const breakdown: BasketBreakdown = {
     rent,
-    groceries: roundMoney(profile.groceries * householdScale),
+    groceries: roundMoney(profile.groceries * input.adultCount / householdCostBaselineSize),
+    childFood,
+    childcare,
     gas,
     restaurants: roundMoney(profile.restaurants * householdScale),
     tolls: profile.tolls,
@@ -190,11 +229,19 @@ function buildInsight(
     number,
   ];
   const lines = [
-    `Current fit is ${target.fitLabel}: ${target.fitScore}% of take-home income remains after this basket.`,
+    `Current fit is ${target.fitLabel}: ${target.fitScore}% of the 40% remaining-income target is available after this basket.`,
     `The largest monthly cost is ${labelForCategory(largestEntry[0])} at ${
       formatDollars(largestEntry[1])
     }.`,
   ];
+
+  if (target.breakdown.childcare === 0) {
+    lines.push("Home or family care adds no paid childcare cost in this scenario.");
+  } else {
+    lines.push(
+      `Paid childcare adds ${formatDollars(target.breakdown.childcare)} per month based on ${childcareProvenance.label}.`,
+    );
+  }
 
   if (bestAlternative) {
     const minutes = bestAlternative.deltaCommuteMinutes;
@@ -219,6 +266,8 @@ function buildInsight(
 
 function labelForCategory(category: keyof BasketBreakdown): string {
   if (category === "rent") return "rent";
+  if (category === "childFood") return "child food";
+  if (category === "childcare") return "paid childcare";
   if (category === "additionalHouseholdExpenses") return "additional household expenses";
   return category;
 }

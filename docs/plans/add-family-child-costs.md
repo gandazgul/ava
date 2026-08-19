@@ -1,4 +1,5 @@
 ---
+planId: "c4303ca1-93c4-4281-8f6d-c2c3a06190c6"
 classification: "PLANNED_CHANGE"
 workKind: "FEATURE"
 complexity: "MEDIUM"
@@ -11,18 +12,50 @@ affectedPaths:
   - "src/pages/index.astro"
   - "src/styles/global.css"
   - "docs/demo-handoff.md"
-devServerCommand: "deno task dev --host 0.0.0.0"
-devServerUrl: "http://localhost:4321"
-devServerHmr: true
-createdAt: "2026-08-19T19:20:59-04:00"
-status: "draft"
 objectiveChecks:
   - id: "OC1"
     command: "deno eval 'import {compareStamfordScenario} from \"./src/lib/affordability.ts\"; import {preparedScenario,stamfordProfiles} from \"./src/data/stamford.ts\"; const p=preparedScenario as any; if(p.adultCount!==2||p.children?.join()!==\"age4to5\"||p.usesDaycare!==true) throw new Error(\"prepared family absent\"); const paid=compareStamfordScenario(p,stamfordProfiles), home=compareStamfordScenario({...p,usesDaycare:false},stamfordProfiles); const b=paid.target.breakdown as any, h=home.target.breakdown as any; if(b.childFood!==214.1||b.childcare!==1173.43||h.childFood!==214.1||h.childcare!==0||Number((paid.target.monthlyBasket-home.target.monthlyBasket).toFixed(2))!==1173.43) throw new Error(\"family costs incorrect\");'"
     rationale: "The current model has only householdSize and no child food or childcare categories. This check exercises the real prepared scenario and calculator and passes only when the chosen family composition, sourced preschool food cost, and daycare-versus-home-care behavior affect the basket correctly."
+objectiveChecksBaseline:
+  recordedAt: "2026-08-19T23:23:42.328Z"
+  head: "e4bf6cac5a3ddd806d05e4d10d789966870652ad"
+  results:
+    - id: "OC1"
+      command: "deno eval 'import {compareStamfordScenario} from \"./src/lib/affordability.ts\"; import {preparedScenario,stamfordProfiles} from \"./src/data/stamford.ts\"; const p=preparedScenario as any; if(p.adultCount!==2||p.children?.join()!==\"age4to5\"||p.usesDaycare!==true) throw new Error(\"prepared family absent\"); const paid=compareStamfordScenario(p,stamfordProfiles), home=compareStamfordScenario({...p,usesDaycare:false},stamfordProfiles); const b=paid.target.breakdown as any, h=home.target.breakdown as any; if(b.childFood!==214.1||b.childcare!==1173.43||h.childFood!==214.1||h.childcare!==0||Number((paid.target.monthlyBasket-home.target.monthlyBasket).toFixed(2))!==1173.43) throw new Error(\"family costs incorrect\");'"
+      rationale: "The current model has only householdSize and no child food or childcare categories. This check exercises the real prepared scenario and calculator and passes only when the chosen family composition, sourced preschool food cost, and daycare-versus-home-care behavior affect the basket correctly."
+      status: "unmet"
+      stdout: ""
+      stderr: "\u001b[0m\u001b[1m\u001b[31merror\u001b[0m: Uncaught (in promise) Error: prepared family absent\n    at \u001b[0m\u001b[2m\u001b[38;5;245mfile:///Users/gandazgul/.wld/worktrees/--Users-gandazgul-Documents-web-ava--/ava-add-family-child-costs-b0829478/\u001b[0m\u001b[0m\u001b[36m$deno$eval.mts\u001b[0m:\u001b[0m\u001b[33m1\u001b[0m:\u001b[0m\u001b[33m257\u001b[0m\n"
+      exitCode: 1
+      durationMs: 28
+      output: "\n\u001b[0m\u001b[1m\u001b[31merror\u001b[0m: Uncaught (in promise) Error: prepared family absent\n    at \u001b[0m\u001b[2m\u001b[38;5;245mfile:///Users/gandazgul/.wld/worktrees/--Users-gandazgul-Documents-web-ava--/ava-add-family-child-costs-b0829478/\u001b[0m\u001b[0m\u001b[36m$deno$eval.mts\u001b[0m:\u001b[0m\u001b[33m1\u001b[0m:\u001b[0m\u001b[33m257\u001b[0m\n"
 executionAgent: "frontend-engineer"
 collaborationRecommendation: "pair"
-updatedAt: "2026-08-19T23:22:29.412Z"
+devServerCommand: "deno task dev --host 0.0.0.0"
+devServerUrl: "http://localhost:4321"
+devServerHmr: true
+createdAt: "2026-08-19T19:20:59-04:00"
+updatedAt: "2026-08-19T23:35:57.195Z"
+status: "implemented"
+origin: "internal"
+implementedAt: "2026-08-19T23:35:57.195Z"
+userVerifiedAt: null
+executionReport: "- Implemented family composition in the AVA demo: `adultCount`, repeatable child age-band rows, and `usesDaycare` replaced flat `householdSize` across data, calculator input, demo clients, tests, and handoff docs.\n- Added offline sourced child-cost snapshot data: USDA December 2025 child food by age band and Connecticut Care 4 Kids Southwest July 2023 full-time center daycare rates; home/family care adds `$0` paid childcare.\n- Updated the prepared Jordan M. demo to 2 adults + one age 4–5 child + paid daycare; target result is basket `$6,234.96`, remaining `+$965.04`, score `34/100 Reconsider`, best alternative `06906` with `+$521.55` remaining.\n- Preserved existing local-average scoring, ZIP ranking, property-load behavior, Clients/Properties preview, Upgrade preview, and no-runtime-network design.\n- Tests changed: `src/lib/affordability.test.ts` went from 13 to 15 Deno tests; the old uniform `householdSize` scaling coverage was rewritten for adult/child/care behavior, and child food, daycare/home-care, multiple-child, teen eligibility, validation, ranking, scoring, and immutability behaviors are covered.\n- Automated verification passed: `deno task test` (15 passed), `deno task check` (0 errors/warnings/hints), `deno task build`, and OC1 family-cost eval.\n- Headed browser dev URL: `http://127.0.0.1:4332/` in session `runwield-add-family-child-costs-b082`; separate port used because port 4321 was already owned by a server from another worktree.\n- Browser checks passed on desktop 1440×1000: prepared calculation, daycare off/on, add/remove child, top alternative compare, client load, property load, and visible keyboard focus; evidence screenshots include `artifacts/family-daycare-off-desktop.png`, `artifacts/family-comparison-desktop.png`, `artifacts/family-client-property-flow-desktop.png`, and `artifacts/family-keyboard-focus-desktop.png`.\n- Browser checks passed on mobile 390×844: prepared family calculation, child food/paid childcare visible, and no horizontal overflow; evidence screenshot `artifacts/family-costs-mobile.png`.\n- Browser diagnostics: no page errors, no failed XHR/fetch requests, and console output was Vite dev/HMR debug messages only.\n- No unresolved blockers."
+humanReviewMode: null
+humanReviewDecision: null
+validationCheckpoint: null
+executionMode: "worktree"
+executionBaselineTree: "6093889f893a03a0daa1f4a5a9c0b21cc150a26b"
+worktreeId: "b0829478"
+worktreePath: "/Users/gandazgul/.wld/worktrees/--Users-gandazgul-Documents-web-ava--/ava-add-family-child-costs-b0829478"
+worktreeBranch: "worktree/add-family-child-costs-b0829478"
+worktreeBaseBranch: "main"
+worktreeStatus: "completed"
+routingIntent: "PLANNED_CHANGE"
+sessionName: "family kids cost model"
+validationCiAttempts: 0
+validationObjectiveCheckAttempts: 0
+validationSemanticRounds: 0
 ---
 
 # Add Family and Child Costs to the AVA Demo
