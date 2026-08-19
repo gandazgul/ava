@@ -11,18 +11,23 @@ affectedPaths:
   - "src/pages/index.astro"
   - "src/styles/global.css"
   - "docs/demo-handoff.md"
-devServerCommand: "deno task dev --host 0.0.0.0"
-devServerUrl: "http://localhost:4321"
-devServerHmr: true
-createdAt: "2026-08-19T19:20:59-04:00"
-status: "draft"
 objectiveChecks:
   - id: "OC1"
     command: "deno eval 'import {compareStamfordScenario} from \"./src/lib/affordability.ts\"; import {preparedScenario,stamfordProfiles} from \"./src/data/stamford.ts\"; const p=preparedScenario as any; if(p.adultCount!==2||p.children?.join()!==\"age4to5\"||p.usesDaycare!==true) throw new Error(\"prepared family absent\"); const paid=compareStamfordScenario(p,stamfordProfiles), home=compareStamfordScenario({...p,usesDaycare:false},stamfordProfiles); const b=paid.target.breakdown as any, h=home.target.breakdown as any; if(b.childFood!==214.1||b.childcare!==1173.43||h.childFood!==214.1||h.childcare!==0||Number((paid.target.monthlyBasket-home.target.monthlyBasket).toFixed(2))!==1173.43) throw new Error(\"family costs incorrect\");'"
     rationale: "The current model has only householdSize and no child food or childcare categories. This check exercises the real prepared scenario and calculator and passes only when the chosen family composition, sourced preschool food cost, and daycare-versus-home-care behavior affect the basket correctly."
 executionAgent: "frontend-engineer"
 collaborationRecommendation: "pair"
-updatedAt: "2026-08-19T23:22:29.412Z"
+devServerCommand: "deno task dev --host 0.0.0.0"
+devServerUrl: "http://localhost:4321"
+devServerHmr: true
+createdAt: "2026-08-19T19:20:59-04:00"
+updatedAt: "2026-08-19T23:23:41.487Z"
+status: "ready_for_work"
+origin: "internal"
+userVerifiedAt: null
+routingIntent: "PLANNED_CHANGE"
+sessionName: "family kids cost model"
+planId: "c4303ca1-93c4-4281-8f6d-c2c3a06190c6"
 ---
 
 # Add Family and Child Costs to the AVA Demo
