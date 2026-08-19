@@ -1,6 +1,17 @@
 export const supportedZips = ["06901", "06902", "06903", "06905", "06906", "06907"] as const;
 export type StamfordZip = typeof supportedZips[number];
 
+export const childAgeBands = [
+  "age1",
+  "age2to3",
+  "age4to5",
+  "age6to8",
+  "age9to11",
+  "age12to13",
+  "age14to17",
+] as const;
+export type ChildAgeBand = typeof childAgeBands[number];
+
 export type ProvenancePrecision =
   | "ZIP-level source data"
   | "state/national baseline data"
@@ -11,6 +22,12 @@ export interface Provenance {
   asOf: string;
   source: string;
   precision: ProvenancePrecision;
+}
+
+export interface ChildCostAssumption {
+  label: string;
+  monthlyFood: number;
+  daycareWeekly?: number;
 }
 
 export interface StamfordProfile {
@@ -41,7 +58,9 @@ export interface CommuteEstimate {
 export interface PreparedScenario {
   clientName: string;
   monthlyTakeHomeIncome: number;
-  householdSize: number;
+  adultCount: number;
+  children: ChildAgeBand[];
+  usesDaycare: boolean;
   targetZip: StamfordZip;
   targetRent: number;
   workZip: StamfordZip;
@@ -67,6 +86,20 @@ export const foodProvenance: Provenance = {
   label: "USDA moderate food plan broad baseline used as a local average",
   asOf: "2025",
   source: "https://www.fns.usda.gov/cnpp/usda-food-plans-cost-food-monthly-reports",
+  precision: "state/national baseline data",
+};
+
+export const childFoodProvenance: Provenance = {
+  label: "USDA Moderate-Cost Food Plan child age-band monthly costs",
+  asOf: "December 2025, issued January 2026",
+  source: "https://fns.usda.gov/sites/default/files/resource-files/cnpp-costfood-3levels-dec2025.pdf",
+  precision: "state/national baseline data",
+};
+
+export const childcareProvenance: Provenance = {
+  label: "Connecticut Care 4 Kids Southwest full-time center rate schedule",
+  asOf: "July 2023",
+  source: "https://www.ctcare4kids.com/wp-content/uploads/2023/06/Care-4-Kids-Weekly-Rates-Effective-July-2023.pdf",
   precision: "state/national baseline data",
 };
 
@@ -98,10 +131,22 @@ export const fuelAssumption = {
   provenance: energy("Connecticut regular gasoline assumption used with fixed mileage estimate"),
 };
 
+export const childCostAssumptions: Record<ChildAgeBand, ChildCostAssumption> = {
+  age1: { label: "Child age 1", monthlyFood: 180, daycareWeekly: 422 },
+  age2to3: { label: "Child age 2–3", monthlyFood: 200.5, daycareWeekly: 422 },
+  age4to5: { label: "Child age 4–5", monthlyFood: 214.1, daycareWeekly: 271 },
+  age6to8: { label: "Child age 6–8", monthlyFood: 295.3, daycareWeekly: 191 },
+  age9to11: { label: "Child age 9–11", monthlyFood: 338.2, daycareWeekly: 191 },
+  age12to13: { label: "Child age 12–13, derived female/male average", monthlyFood: 346.05 },
+  age14to17: { label: "Child age 14–17, derived female/male average", monthlyFood: 352.3 },
+};
+
 export const preparedScenario: PreparedScenario = {
   clientName: "Jordan M.",
   monthlyTakeHomeIncome: 7200,
-  householdSize: 2,
+  adultCount: 2,
+  children: ["age4to5"],
+  usesDaycare: true,
   targetZip: "06902",
   targetRent: 2850,
   workZip: "06901",

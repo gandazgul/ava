@@ -2,6 +2,8 @@
 import AppLayout from "../layouts/AppLayout.astro";
 import { demoClients, demoProperties } from "../data/demo-workspace.ts";
 import {
+  childcareProvenance,
+  childFoodProvenance,
   commuteProvenance,
   foodProvenance,
   fuelAssumption,
@@ -9,7 +11,17 @@ import {
   stamfordProfiles,
   supportedZips,
   tollProvenance,
+  type ChildAgeBand,
 } from "../data/stamford.ts";
+
+const familySummary = (scenario: { adultCount: number; children: ChildAgeBand[]; usesDaycare: boolean }) => {
+  const adults = `${scenario.adultCount} ${scenario.adultCount === 1 ? "adult" : "adults"}`;
+  const children = scenario.children.length === 0
+    ? "no children"
+    : `${scenario.children.length} ${scenario.children.length === 1 ? "child" : "children"}`;
+  const care = scenario.usesDaycare ? "paid daycare" : "home/family care";
+  return `${adults}, ${children}, ${care}`;
+};
 ---
 
 <AppLayout>
@@ -18,7 +30,7 @@ import {
       <p class="eyebrow">Stamford affordability workflow</p>
       <h1>Show the full monthly fit, not only the rent.</h1>
       <p>
-        AVA keeps the calculator front and center, then lets an agent preview how saved clients and properties can be pulled into the same affordability workflow.
+        AVA keeps the calculator front and center, then lets an agent preview how saved clients, family needs, and properties can be pulled into the same affordability workflow.
       </p>
       <div class="hero-actions">
         <button class="secondary-button" type="button" data-nav-view="clients">Clients</button>
@@ -27,7 +39,7 @@ import {
     </section>
 
     <section class="workflow-grid">
-      <form id="scenario-form" class="card form-card" aria-describedby="form-help">
+      <form id="scenario-form" class="card form-card" aria-describedby="form-help family-help">
         <div class="section-heading">
           <p class="eyebrow">Step 1</p>
           <h2>Client basket</h2>
@@ -38,8 +50,8 @@ import {
           <label>Monthly take-home income
             <input name="monthlyTakeHomeIncome" type="number" min="1" step="1" required />
           </label>
-          <label>Household size
-            <input name="householdSize" type="number" min="1" step="1" required />
+          <label>Adults
+            <input name="adultCount" type="number" min="1" step="1" required />
           </label>
           <label>Target ZIP
             <select name="targetZip" required>
@@ -59,6 +71,21 @@ import {
           </label>
           <label>Additional household expenses
             <input name="additionalHouseholdExpenses" type="number" min="0" step="1" placeholder="0" />
+          </label>
+        </div>
+
+        <div class="family-builder" aria-labelledby="family-title">
+          <div class="family-heading">
+            <div>
+              <h3 id="family-title">Children</h3>
+              <p id="family-help">Add one row for each child. USDA child food and Connecticut daycare rates use the selected age band.</p>
+            </div>
+            <button class="secondary-button" type="button" data-add-child>Add child</button>
+          </div>
+          <div class="child-list" data-child-list></div>
+          <label class="checkbox-label">
+            <input name="usesDaycare" type="checkbox" />
+            <span><strong>Paid daycare</strong><small>Clear this box for home/family care. That adds $0 paid childcare.</small></span>
           </label>
         </div>
 
@@ -85,7 +112,7 @@ import {
           <div><dt>Income remaining</dt><dd data-remaining></dd></div>
           <div><dt>One-way commute</dt><dd data-commute></dd></div>
         </dl>
-        <h3>Local averages and client expenses</h3>
+        <h3>Local averages and family expenses</h3>
         <div class="breakdown" data-breakdown></div>
       </section>
     </section>
@@ -122,15 +149,18 @@ import {
       </div>
       <div class="source-grid">
         <article><strong>ZIP-level source data</strong><p>Rent baselines use HUD Small Area Fair Market Rent by ZIP.</p></article>
-        <article><strong>State/national baseline data</strong><p>Food and energy values use broad public baselines as local averages.</p></article>
+        <article><strong>State/national baseline data</strong><p>Adult food, child food, daycare, and energy values use broad public baselines as local averages.</p></article>
         <article><strong>Demo estimates</strong><p>Commute, dining, tolls, parking, clients, and properties support the demo story. They are local average estimates, not live traffic or a listing feed.</p></article>
       </div>
       <ul class="source-list">
         <li>{foodProvenance.label} · {foodProvenance.asOf} · {foodProvenance.precision}</li>
+        <li>{childFoodProvenance.label} · {childFoodProvenance.asOf} · {childFoodProvenance.precision}</li>
+        <li>{childcareProvenance.label} · {childcareProvenance.asOf} · Southwest Connecticut full-time center rates. Home/family care adds no paid childcare.</li>
         <li>{fuelAssumption.provenance.label} · {fuelAssumption.provenance.asOf} · {fuelAssumption.provenance.precision}</li>
         <li>{restaurantProvenance.label} · {restaurantProvenance.precision}</li>
         <li>{tollProvenance.label} · {tollProvenance.precision}</li>
         <li>{commuteProvenance.label}. Map data © OpenStreetMap contributors. Routing estimate by OSRM.</li>
+        <li>Child food and childcare are broad averages. They are not live provider quotes and do not estimate every cost of raising a child.</li>
         <li>Client and property records are fictional preview records. They are not saved after refresh.</li>
       </ul>
     </section>
@@ -156,6 +186,7 @@ import {
           <p>{client.status}</p>
           <dl class="record-metrics">
             <div><dt>Income</dt><dd>${client.scenario.monthlyTakeHomeIncome.toLocaleString()}</dd></div>
+            <div><dt>Family</dt><dd>{familySummary(client.scenario)}</dd></div>
             <div><dt>Target</dt><dd>{client.scenario.targetZip}</dd></div>
             <div><dt>Rent</dt><dd>${client.scenario.targetRent.toLocaleString()}</dd></div>
           </dl>
@@ -220,12 +251,14 @@ import {
     // @ts-nocheck
     import { compareStamfordScenario } from "../lib/affordability.ts";
     import { demoClients, demoProperties } from "../data/demo-workspace.ts";
-    import { preparedScenario, stamfordProfiles } from "../data/stamford.ts";
+    import { childAgeBands, childCostAssumptions, preparedScenario, stamfordProfiles } from "../data/stamford.ts";
 
     const form = document.querySelector("#scenario-form");
     const error = document.querySelector("[data-error]");
     const loadNote = document.querySelector("[data-load-note]");
     const resetDemoButton = document.querySelector("[data-reset-demo]");
+    const childList = document.querySelector("[data-child-list]");
+    const addChildButton = document.querySelector("[data-add-child]");
     const previewDialog = document.querySelector("[data-preview-dialog]");
     const detailDialog = document.querySelector("[data-detail-dialog]");
     const openPreviewButtons = document.querySelectorAll("[data-open-preview]");
@@ -239,10 +272,12 @@ import {
 
     const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
     const signedCurrency = (value) => `${value >= 0 ? "+" : "-"}${currency.format(Math.abs(value))}`;
-    const categories = ["rent", "groceries", "gas", "restaurants", "tolls", "heat", "utilities", "additionalHouseholdExpenses"];
+    const categories = ["rent", "groceries", "childFood", "childcare", "gas", "restaurants", "tolls", "heat", "utilities", "additionalHouseholdExpenses"];
     const categoryLabels = {
       rent: "Rent",
-      groceries: "Groceries · local average",
+      groceries: "Adult groceries · local average",
+      childFood: "Child food · USDA age-band average",
+      childcare: "Paid childcare",
       gas: "Gas",
       restaurants: "Restaurants · local average",
       tolls: "Tolls and parking · local average",
@@ -261,10 +296,43 @@ import {
       });
     }
 
+    function childOptions(selected) {
+      return childAgeBands.map((band) => `<option value="${band}" ${band === selected ? "selected" : ""}>${childCostAssumptions[band].label}</option>`).join("");
+    }
+
+    function setChildRows(children) {
+      childList.innerHTML = children.map((child, index) => `
+        <div class="child-row">
+          <label>Child ${index + 1} age band
+            <select data-child-age required>${childOptions(child)}</select>
+          </label>
+          <button class="ghost-button" type="button" data-remove-child="${index}" aria-label="Remove child ${index + 1}">Remove</button>
+        </div>`).join("");
+      if (children.length === 0) {
+        childList.innerHTML = `<p class="empty-child-note">No children added. Adult-only scenarios remain valid.</p>`;
+      }
+    }
+
+    function currentChildren() {
+      return Array.from(childList.querySelectorAll("[data-child-age]")).map((select) => select.value);
+    }
+
+    function familySummary(scenario) {
+      const adults = `${scenario.adultCount} ${scenario.adultCount === 1 ? "adult" : "adults"}`;
+      const childText = scenario.children.length === 0 ? "no children" : `${scenario.children.length} ${scenario.children.length === 1 ? "child" : "children"}`;
+      return `${adults}, ${childText}, ${scenario.usesDaycare ? "paid daycare" : "home/family care"}`;
+    }
+
     function fillFields(values) {
       Object.entries(values).forEach(([key, value]) => {
+        if (key === "children") {
+          setChildRows(value);
+          return;
+        }
         const field = form.elements.namedItem(key);
-        if (field) field.value = String(value);
+        if (!field) return;
+        if (field.type === "checkbox") field.checked = Boolean(value);
+        else field.value = String(value);
       });
     }
 
@@ -277,7 +345,9 @@ import {
       const data = new FormData(form);
       return {
         monthlyTakeHomeIncome: Number(data.get("monthlyTakeHomeIncome")),
-        householdSize: Number(data.get("householdSize")),
+        adultCount: Number(data.get("adultCount")),
+        children: currentChildren(),
+        usesDaycare: Boolean(data.get("usesDaycare")),
         targetZip: String(data.get("targetZip")),
         targetRent: Number(data.get("targetRent")),
         workZip: String(data.get("workZip")),
@@ -339,7 +409,7 @@ import {
       if (!zip || !latestResult) return;
       const alternative = latestResult.alternatives.find((item) => item.zip === zip);
       if (!alternative) return;
-      const resultCard = (title, item) => `<article class="calculator-result-card"><h3>${title}</h3><div class="score-pill">${item.fitScore}/100 · ${item.fitLabel}</div><dl><div><dt>Monthly basket</dt><dd>${currency.format(item.monthlyBasket)}</dd></div><div><dt>Income remaining</dt><dd>${signedCurrency(item.remainingDollars)}</dd></div><div><dt>Rent</dt><dd>${currency.format(item.breakdown.rent)}</dd></div><div><dt>Groceries</dt><dd>${currency.format(item.breakdown.groceries)}</dd></div><div><dt>Gas</dt><dd>${currency.format(item.breakdown.gas)}</dd></div><div><dt>Restaurants</dt><dd>${currency.format(item.breakdown.restaurants)}</dd></div><div><dt>Tolls and parking</dt><dd>${currency.format(item.breakdown.tolls)}</dd></div><div><dt>Heat</dt><dd>${currency.format(item.breakdown.heat)}</dd></div><div><dt>Utilities</dt><dd>${currency.format(item.breakdown.utilities)}</dd></div><div><dt>Additional expenses</dt><dd>${currency.format(item.breakdown.additionalHouseholdExpenses)}</dd></div><div><dt>One-way commute</dt><dd>${item.commuteMinutesOneWay} min · ${item.commuteMilesOneWay} mi</dd></div></dl></article>`;
+      const resultCard = (title, item) => `<article class="calculator-result-card"><h3>${title}</h3><div class="score-pill">${item.fitScore}/100 · ${item.fitLabel}</div><dl>${categories.map((category) => `<div><dt>${categoryLabels[category].replace(" · local average", "").replace(" · USDA age-band average", "")}</dt><dd>${currency.format(item.breakdown[category])}</dd></div>`).join("")}<div><dt>Monthly basket</dt><dd>${currency.format(item.monthlyBasket)}</dd></div><div><dt>Income remaining</dt><dd>${signedCurrency(item.remainingDollars)}</dd></div><div><dt>One-way commute</dt><dd>${item.commuteMinutesOneWay} min · ${item.commuteMilesOneWay} mi</dd></div></dl></article>`;
       document.querySelector("[data-alternatives]").className = "selected-comparison";
       document.querySelector("[data-alternatives]").innerHTML = `
         <div class="comparison-toolbar">
@@ -372,7 +442,7 @@ import {
       detailBody.innerHTML = `
         <div class="detail-layout">
           <div><span class="badge">${client.label}</span><h3>${client.status}</h3><p>${client.goal}</p><p>${client.notes}</p></div>
-          <dl class="record-metrics detail-metrics"><div><dt>Income</dt><dd>${currency.format(client.scenario.monthlyTakeHomeIncome)}</dd></div><div><dt>Target ZIP</dt><dd>${client.scenario.targetZip}</dd></div><div><dt>Rent</dt><dd>${currency.format(client.scenario.targetRent)}</dd></div><div><dt>Work ZIP</dt><dd>${client.scenario.workZip}</dd></div></dl>
+          <dl class="record-metrics detail-metrics"><div><dt>Income</dt><dd>${currency.format(client.scenario.monthlyTakeHomeIncome)}</dd></div><div><dt>Family</dt><dd>${familySummary(client.scenario)}</dd></div><div><dt>Target ZIP</dt><dd>${client.scenario.targetZip}</dd></div><div><dt>Rent</dt><dd>${currency.format(client.scenario.targetRent)}</dd></div><div><dt>Work ZIP</dt><dd>${client.scenario.workZip}</dd></div></dl>
         </div>
         <button class="primary-button" type="button" data-use-detail>Use in calculator</button>`;
       detailDialog.showModal();
@@ -387,7 +457,7 @@ import {
           <div><span class="badge">${property.label}</span><h3>${property.areaName} · ${property.zip}</h3><p>${property.description}</p><ul>${property.highlights.map((item) => `<li>${item}</li>`).join("")}</ul></div>
           <dl class="record-metrics detail-metrics"><div><dt>Price</dt><dd>${property.price}</dd></div><div><dt>Beds</dt><dd>${property.beds}</dd></div><div><dt>Baths</dt><dd>${property.baths}</dd></div><div><dt>Loaded fields</dt><dd>ZIP and rent</dd></div></dl>
         </div>
-        <p class="record-note">This loads only target ZIP and expected rent. Other client values stay unchanged.</p>
+        <p class="record-note">This loads only target ZIP and expected rent. Family values stay unchanged.</p>
         <button class="primary-button" type="button" data-use-detail>Use in calculator</button>`;
       detailDialog.showModal();
     }
@@ -416,6 +486,18 @@ import {
       if (!document.querySelector("[data-results]").hidden && form.checkValidity()) calculateScenario();
     });
     form.addEventListener("change", () => {
+      if (!document.querySelector("[data-results]").hidden && form.checkValidity()) calculateScenario();
+    });
+    addChildButton.addEventListener("click", () => {
+      setChildRows([...currentChildren(), "age4to5"]);
+      if (!document.querySelector("[data-results]").hidden && form.checkValidity()) calculateScenario();
+    });
+    childList.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-remove-child]");
+      if (!button) return;
+      const children = currentChildren();
+      children.splice(Number(button.dataset.removeChild), 1);
+      setChildRows(children);
       if (!document.querySelector("[data-results]").hidden && form.checkValidity()) calculateScenario();
     });
     resetDemoButton.addEventListener("click", () => { fillDemo(); form.requestSubmit(); });
