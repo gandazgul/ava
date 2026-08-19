@@ -35,14 +35,14 @@ devServerCommand: "deno task dev --host 0.0.0.0"
 devServerUrl: "http://localhost:4321"
 devServerHmr: true
 createdAt: "2026-08-19T19:20:59-04:00"
-updatedAt: "2026-08-19T23:35:57.195Z"
-status: "implemented"
+updatedAt: "2026-08-19T23:43:03.595Z"
+status: "validated_reviewer"
 origin: "internal"
 implementedAt: "2026-08-19T23:35:57.195Z"
 userVerifiedAt: null
 executionReport: "- Implemented family composition in the AVA demo: `adultCount`, repeatable child age-band rows, and `usesDaycare` replaced flat `householdSize` across data, calculator input, demo clients, tests, and handoff docs.\n- Added offline sourced child-cost snapshot data: USDA December 2025 child food by age band and Connecticut Care 4 Kids Southwest July 2023 full-time center daycare rates; home/family care adds `$0` paid childcare.\n- Updated the prepared Jordan M. demo to 2 adults + one age 4–5 child + paid daycare; target result is basket `$6,234.96`, remaining `+$965.04`, score `34/100 Reconsider`, best alternative `06906` with `+$521.55` remaining.\n- Preserved existing local-average scoring, ZIP ranking, property-load behavior, Clients/Properties preview, Upgrade preview, and no-runtime-network design.\n- Tests changed: `src/lib/affordability.test.ts` went from 13 to 15 Deno tests; the old uniform `householdSize` scaling coverage was rewritten for adult/child/care behavior, and child food, daycare/home-care, multiple-child, teen eligibility, validation, ranking, scoring, and immutability behaviors are covered.\n- Automated verification passed: `deno task test` (15 passed), `deno task check` (0 errors/warnings/hints), `deno task build`, and OC1 family-cost eval.\n- Headed browser dev URL: `http://127.0.0.1:4332/` in session `runwield-add-family-child-costs-b082`; separate port used because port 4321 was already owned by a server from another worktree.\n- Browser checks passed on desktop 1440×1000: prepared calculation, daycare off/on, add/remove child, top alternative compare, client load, property load, and visible keyboard focus; evidence screenshots include `artifacts/family-daycare-off-desktop.png`, `artifacts/family-comparison-desktop.png`, `artifacts/family-client-property-flow-desktop.png`, and `artifacts/family-keyboard-focus-desktop.png`.\n- Browser checks passed on mobile 390×844: prepared family calculation, child food/paid childcare visible, and no horizontal overflow; evidence screenshot `artifacts/family-costs-mobile.png`.\n- Browser diagnostics: no page errors, no failed XHR/fetch requests, and console output was Vite dev/HMR debug messages only.\n- No unresolved blockers."
-humanReviewMode: null
-humanReviewDecision: null
+humanReviewMode: "ask"
+humanReviewDecision: "skipped"
 validationCheckpoint: null
 executionMode: "worktree"
 executionBaselineTree: "6093889f893a03a0daa1f4a5a9c0b21cc150a26b"
@@ -55,7 +55,7 @@ routingIntent: "PLANNED_CHANGE"
 sessionName: "family kids cost model"
 validationCiAttempts: 0
 validationObjectiveCheckAttempts: 0
-validationSemanticRounds: 0
+validationSemanticRounds: 1
 ---
 
 # Add Family and Child Costs to the AVA Demo

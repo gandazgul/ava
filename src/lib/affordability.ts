@@ -1,10 +1,11 @@
 import {
-  childcareProvenance,
+  type ChildAgeBand,
   childAgeBands,
+  childcareProvenance,
   childCostAssumptions,
+  childFoodProvenance,
   commuteMatrix,
   fuelAssumption,
-  type ChildAgeBand,
   type StamfordProfile,
   type StamfordZip,
   supportedZips,
@@ -235,11 +236,19 @@ function buildInsight(
     }.`,
   ];
 
+  lines.push(
+    `Child food adds ${
+      formatDollars(target.breakdown.childFood)
+    } per month based on ${childFoodProvenance.label}.`,
+  );
+
   if (target.breakdown.childcare === 0) {
     lines.push("Home or family care adds no paid childcare cost in this scenario.");
   } else {
     lines.push(
-      `Paid childcare adds ${formatDollars(target.breakdown.childcare)} per month based on ${childcareProvenance.label}.`,
+      `Paid childcare adds ${
+        formatDollars(target.breakdown.childcare)
+      } per month based on ${childcareProvenance.label}.`,
     );
   }
 

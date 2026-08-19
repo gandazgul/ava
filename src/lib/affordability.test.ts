@@ -1,7 +1,9 @@
 import { assertEquals, assertThrows } from "@std/assert";
 import { compareStamfordScenario, type ProfileMap, type ScenarioInput } from "./affordability.ts";
 import {
+  childcareProvenance,
   childCostAssumptions,
+  childFoodProvenance,
   fuelAssumption,
   preparedScenario,
   stamfordProfiles,
@@ -39,7 +41,10 @@ Deno.test("local average costs come from each ZIP profile", () => {
 });
 
 Deno.test("adult count and child rows change family-sensitive monthly costs", () => {
-  const adultOnly = compareStamfordScenario({ ...baseInput, children: [], usesDaycare: false }, stamfordProfiles);
+  const adultOnly = compareStamfordScenario(
+    { ...baseInput, children: [], usesDaycare: false },
+    stamfordProfiles,
+  );
   const oneAdult = compareStamfordScenario({ ...baseInput, adultCount: 1 }, stamfordProfiles);
   const threePeople = compareStamfordScenario(baseInput, stamfordProfiles);
 
@@ -63,15 +68,24 @@ Deno.test("child food follows each supported age-band source snapshot", () => {
   ];
 
   for (const [children, expectedFood] of cases) {
-    const result = compareStamfordScenario({ ...baseInput, children, usesDaycare: false }, stamfordProfiles);
+    const result = compareStamfordScenario(
+      { ...baseInput, children, usesDaycare: false },
+      stamfordProfiles,
+    );
     assertEquals(result.target.breakdown.childFood, expectedFood);
   }
 });
 
 Deno.test("paid daycare uses eligible Connecticut weekly rates and home care adds zero", () => {
   const children: ScenarioInput["children"] = ["age1", "age4to5", "age6to8", "age12to13"];
-  const paid = compareStamfordScenario({ ...baseInput, children, usesDaycare: true }, stamfordProfiles);
-  const home = compareStamfordScenario({ ...baseInput, children, usesDaycare: false }, stamfordProfiles);
+  const paid = compareStamfordScenario(
+    { ...baseInput, children, usesDaycare: true },
+    stamfordProfiles,
+  );
+  const home = compareStamfordScenario(
+    { ...baseInput, children, usesDaycare: false },
+    stamfordProfiles,
+  );
   const expectedPaid = (422 + 271 + 191) * fuelAssumption.weeksPerMonth;
 
   assertEquals(paid.target.breakdown.childcare, Number(expectedPaid.toFixed(2)));
@@ -81,6 +95,23 @@ Deno.test("paid daycare uses eligible Connecticut weekly rates and home care add
     Number(expectedPaid.toFixed(2)),
   );
   assertEquals(childCostAssumptions.age12to13.daycareWeekly, undefined);
+});
+
+Deno.test("insight shows child food and paid childcare as separate sourced monthly categories", () => {
+  const result = compareStamfordScenario(baseInput, stamfordProfiles);
+
+  assertEquals(
+    result.insight.includes(
+      `Child food adds $214 per month based on ${childFoodProvenance.label}.`,
+    ),
+    true,
+  );
+  assertEquals(
+    result.insight.includes(
+      `Paid childcare adds $1,173 per month based on ${childcareProvenance.label}.`,
+    ),
+    true,
+  );
 });
 
 Deno.test("each scenario input changes the target calculation", () => {
@@ -247,20 +278,25 @@ Deno.test("validation rejects invalid inputs", () => {
   assertThrows(() =>
     compareStamfordScenario({ ...baseInput, targetZip: "10001" }, stamfordProfiles)
   );
+  assertThrows(() => compareStamfordScenario({ ...baseInput, adultCount: 1.5 }, stamfordProfiles));
+  assertThrows(() => compareStamfordScenario({ ...baseInput, adultCount: 0 }, stamfordProfiles));
   assertThrows(() =>
-    compareStamfordScenario({ ...baseInput, adultCount: 1.5 }, stamfordProfiles)
+    compareStamfordScenario(
+      { ...baseInput, children: "age4to5" as unknown as [] },
+      stamfordProfiles,
+    )
   );
   assertThrows(() =>
-    compareStamfordScenario({ ...baseInput, adultCount: 0 }, stamfordProfiles)
+    compareStamfordScenario(
+      { ...baseInput, children: ["infant"] as unknown as [] },
+      stamfordProfiles,
+    )
   );
   assertThrows(() =>
-    compareStamfordScenario({ ...baseInput, children: "age4to5" as unknown as [] }, stamfordProfiles)
-  );
-  assertThrows(() =>
-    compareStamfordScenario({ ...baseInput, children: ["infant"] as unknown as [] }, stamfordProfiles)
-  );
-  assertThrows(() =>
-    compareStamfordScenario({ ...baseInput, usesDaycare: "yes" as unknown as boolean }, stamfordProfiles)
+    compareStamfordScenario(
+      { ...baseInput, usesDaycare: "yes" as unknown as boolean },
+      stamfordProfiles,
+    )
   );
   assertThrows(() =>
     compareStamfordScenario({ ...baseInput, commuteDaysPerWeek: 8 }, stamfordProfiles)
